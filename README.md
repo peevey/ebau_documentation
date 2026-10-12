@@ -1,6 +1,8 @@
-# Markdown-Dokumentationsvorlage
+# eBau Thurgau – Dokumentation
 
-Dieses Template erzeugt aus Markdown eine HTML-Website und ein PDF. Der
+Dieses Repository dokumentiert eBau Thurgau und erzeugt aus Markdown eine HTML-Website und ein PDF.
+
+Die fachlichen Kapitel stehen in `pages/01-ueberblick.md` bis `pages/05-quellen.md`. Die bereitgestellte Wissensgrundlage liegt in `docs/kontext/eBau_Kontext_fuer_Codex.md`. Ungeprüfte und geplante Aussagen sind in der Dokumentation gekennzeichnet. Der
 GitHub-Actions-Workflow veröffentlicht die Website mit PDF-Download auf GitHub Pages
 und stellt das PDF zusätzlich als Build-Artefakt bereit.
 
@@ -9,7 +11,7 @@ und stellt das PDF zusätzlich als Build-Artefakt bereit.
 Syntax und Beispiele stehen im [Markdown-Cheat-Sheet](MARKDOWN-CHEAT-SHEET.md).
 
 - `pages/index.md`: Titel und Sprache als YAML-Metadaten.
-- `pages/kap1.md`: Beispielkapitel; weitere Kapitel als `.md` in `pages/` ergänzen.
+- `pages/01-ueberblick.md` bis `pages/05-quellen.md`: fachliche Kapitel; weitere Kapitel als `.md` in `pages/` ergänzen.
 - `assets/images/`: Bilder für HTML und PDF.
 
 Der Build liest zuerst `index.md`, danach alle weiteren Markdown-Dateien in
@@ -69,7 +71,7 @@ In GitHub Actions wird das Zielrepository automatisch aus `GITHUB_REPOSITORY`
 übernommen. Lokal kann es explizit gesetzt werden:
 
 ```bash
-GITHUB_REPOSITORY=mein-account/meine-dokumentation DOCS_EDIT_BRANCH=main bash scripts/build.sh
+GITHUB_REPOSITORY=peevey/ebau_documentation DOCS_EDIT_BRANCH=main bash scripts/build.sh
 ```
 
 Neue Veröffentlichungen lösen veraltete Workflow-Läufe ab. Der Build ist auf
