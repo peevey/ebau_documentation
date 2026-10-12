@@ -1,0 +1,58 @@
+name: Dokumentation bauen und veröffentlichen
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Pandoc und PDF-Werkzeuge installieren
+        timeout-minutes: 10
+        run: |
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y --no-install-recommends pandoc lmodern texlive-xetex texlive-fonts-recommended texlive-latex-extra texlive-lang-german
+
+      - name: HTML und PDF erzeugen
+        run: bash scripts/build.sh
+
+      - name: PDF als Build-Artefakt bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: dokumentation-pdf
+          path: _site/dokumentation.pdf
+          if-no-files-found: error
+
+      - name: GitHub Pages konfigurieren
+        uses: actions/configure-pages@v5
+
+      - name: Website für Veröffentlichung hochladen
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Auf GitHub Pages veröffentlichen
+        id: deployment
+        uses: actions/deploy-pages@v4
