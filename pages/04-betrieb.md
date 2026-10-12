@@ -19,6 +19,6 @@ Gemäss Projektinformation ist das Projekt abgeschlossen; die Anwendungen sind s
 
 ## Dokumentation pflegen
 
-Die Markdown-Dateien unter `pages/` bilden die veröffentlichte Dokumentation. Der Build erzeugt daraus eine gemeinsame HTML-Seite mit Inhaltsverzeichnis und ein PDF. Die Originalzusammenstellung liegt unter `docs/kontext/eBau_Kontext_fuer_Codex.md`. Ihre redaktionellen Arbeitsvorschläge sind Kontext, keine Produktfunktionen.
+Die Markdown-Dateien unter `pages/` bilden die veröffentlichte Dokumentation. Der Build erzeugt daraus eine HTML-Seite pro Kapitel mit gemeinsamer Navigation und ein Gesamt-PDF. Die Originalzusammenstellung liegt unter `docs/kontext/eBau_Kontext_fuer_Codex.md`. Ihre redaktionellen Arbeitsvorschläge sind Kontext, keine Produktfunktionen.
 
 Bei Aktualisierungen sind Quelle und Informationsstand zu ergänzen. Unbestätigte Anforderungen dürfen erst nach fachlicher Prüfung als verfügbare Funktionen beschrieben werden. Für neue technische oder rechtliche Aussagen sind zusätzliche belastbare Grundlagen erforderlich.

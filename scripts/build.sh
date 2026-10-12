@@ -26,15 +26,7 @@ common=(--from=markdown --standalone --toc --toc-depth=3 --number-sections --res
 repository="${GITHUB_REPOSITORY:-peevey/doc_as_code_template}"
 edit_branch="${DOCS_EDIT_BRANCH:-main}"
 edit_base="https://github.com/$repository/edit/$edit_branch"
-html_source=$(mktemp)
-trap 'rm -f "$html_source"' EXIT
-python3 scripts/html-source.py "$edit_base" "${sources[@]}" > "$html_source"
-
-pandoc "${common[@]}" "$html_source" \
-  --to=html5 \
-  --template=scripts/page.html \
-  --variable="edit-index-url:$edit_base/pages/index.md" \
-  --output=_site/index.html
+python3 scripts/html-source.py "$edit_base" "${sources[@]}"
 
 pandoc "${common[@]}" "${sources[@]}" \
   --pdf-engine=xelatex \

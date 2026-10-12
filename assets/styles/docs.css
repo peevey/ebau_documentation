@@ -26,3 +26,8 @@ footer { margin-top: 3rem; padding-block: 1rem; border-top: 1px solid var(--pico
   .contents, .page-header nav, .chapter-edit, footer { display: none; }
   .docs-layout { display: block; }
 }
+
+.pencil-icon { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: -.15em; }
+.title-edit { display: inline-flex; align-items: center; justify-content: center; min-width: 2.75rem; min-height: 2.75rem; }
+.contents a[aria-current="page"] { font-weight: 700; color: var(--pico-primary); }
+.contents nav + nav { margin-top: 1.5rem; }

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>$pagetitle$</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.green.min.css">
 <link rel="stylesheet" href="assets/styles/docs.css">
 $if(highlighting-css)$
 <style>$highlighting-css$</style>
@@ -15,19 +15,24 @@ $endif$
 <h1>$title$</h1>
 <nav aria-label="Dokumentaktionen"><ul>
 <li><a href="dokumentation.pdf" role="button" class="outline" download>PDF herunterladen</a></li>
-<li><a href="$edit-index-url$" role="button" class="secondary outline">Titel bearbeiten</a></li>
+<li><a href="$edit-index-url$" class="title-edit" aria-label="Titel auf GitHub bearbeiten" title="Titel auf GitHub bearbeiten">$pencil-icon$</a></li>
 </ul></nav>
 </header>
 <div class="container docs-layout">
-$if(toc)$
 <aside class="contents">
-<nav aria-label="Inhaltsverzeichnis">
-<h2>Inhaltsverzeichnis</h2>
+<nav aria-label="Kapitel">
+<h2>Kapitel</h2>
+$chapter-navigation$
+</nav>
+$if(toc)$
+<nav aria-label="Auf dieser Seite">
+<h2>Auf dieser Seite</h2>
 $table-of-contents$
 </nav>
-</aside>
 $endif$
+</aside>
 <main id="inhalt">
+<p class="chapter-edit"><a href="$edit-page-url$">$pencil-icon$ Bearbeiten auf GitHub</a></p>
 $body$
 </main>
 </div>

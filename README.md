@@ -1,6 +1,6 @@
 # eBau Thurgau – Dokumentation
 
-Dieses Repository dokumentiert eBau Thurgau und erzeugt aus Markdown eine HTML-Website und ein PDF.
+Dieses Repository dokumentiert eBau Thurgau und erzeugt aus Markdown eine HTML-Website mit einzelnen Kapitelseiten und ein Gesamt-PDF.
 
 Die fachlichen Kapitel stehen in `pages/01-ueberblick.md` bis `pages/06-quellen.md`. Die bereitgestellte Wissensgrundlage liegt in `docs/kontext/eBau_Kontext_fuer_Codex.md`. Ungeprüfte und geplante Aussagen sind in der Dokumentation gekennzeichnet. Der
 GitHub-Actions-Workflow veröffentlicht die Website mit PDF-Download auf GitHub Pages
@@ -42,7 +42,8 @@ bash scripts/build.sh
 
 Ergebnisse:
 
-- `_site/index.html`: Website mit Inhaltsverzeichnis und PDF-Download.
+- `_site/index.html`: Startseite mit Kapitelnavigation und PDF-Download.
+- `_site/01-ueberblick.html` bis `_site/06-quellen.html`: einzelne Kapitelseiten.
 - `_site/dokumentation.pdf`: PDF in A4 mit 25 mm Seitenrändern.
 
 PDF-Layout und Exportoptionen werden zentral in `scripts/build.sh` gepflegt.
@@ -56,14 +57,14 @@ bauen und veröffentlichen die Dokumentation.
 
 ## HTML-Theme und Bearbeiten-Links
 
-Die Website verwendet Pico CSS 2.1.1 über jsDelivr und ein responsives
+Die Website verwendet Pico CSS 2.1.1 in der Farbvariante Green über jsDelivr und ein responsives
 Inhaltsverzeichnis (am Desktop seitlich, auf kleinen Bildschirmen vor dem Inhalt).
 Zum Laden des Pico-Themes benötigen Besucher eine Internetverbindung.
 Eigene Anpassungen stehen in `assets/styles/docs.css`, das HTML-Layout in
 `scripts/page.html`. Der PDF-Export verwendet weiterhin sein separates Layout.
 
-Jedes Kapitel erhält einen **Kapitel bearbeiten**-Link zur passenden Markdown-Datei
-im GitHub-Webeditor. **Titel bearbeiten** öffnet `pages/index.md`.
+Jedes Kapitel erhält einen **Bearbeiten auf GitHub**-Link mit Stift-Icon zur passenden Markdown-Datei
+im GitHub-Webeditor. Das Stift-Icon im Kopfbereich öffnet `pages/index.md`.
 GitHub benötigt zum Speichern eine Anmeldung und entsprechende Berechtigungen;
 je nach Berechtigung entsteht stattdessen ein Änderungsvorschlag über einen Fork.
 
