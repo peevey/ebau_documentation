@@ -1,0 +1,511 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "eBau eCH API Documentation",
+        "contact": {
+            "name": "Kaden und Partner AG",
+            "url": "https://kadenpartner.ch",
+            "email": "info@kadenpartner.ch"
+        },
+        "description": "<a id=\"top\"></a>\nThis document describes the available eBau/ePlan HTTP Services. \n\n\nAlmost all services need a valid session and / or authentication.\n\n## Table of Contents\n\n* [Login](#login)\n* [MTLS](#mtls)\n* [Message Queue](#message-queue)\n* [Dossier Identification](#dossier-identification)\n* [Municipality Identification](#municipality-identification)\n* [Special uses of eCH attributes](#special-uses-of-ech-attributes)\n  * [intendedPurpose](#intendedpurpose)\n* [Status](#status)\n* [Messages](#messages)\n  * [General Notes](#general-notes)\n  * [Specific Notes](#specific-notes)\n  * [Messages produced by eBau/ePlan](#messages-produced-by-ebauePlan)\n  * [Messages consumed by eBau](#messages-consumed-by-ebau)\n* [Extensions](#extensions)\n  * [Suspension](#suspension)\n  * [Proceeding type](#proceeding-type)\n  * [Publication type](#publication-type)\n* [Documents](#documents)\n  * [UUIDs](#uuids)\n  * [File uploads and document references in eCH messages](#file-uploads-and-document-references-in-ech-messages)\n  * [File downloads](#file-downloads)\n  * [Versioning](#versioning)\n  * [Document categories](#document-categories)\n* [Other lists/selections/values](#other-listsselectionsvalues)\n  * [Named Meta Data](#named-meta)\n  * [Judgement types](#judgement-types)\n* [Errors](#errors)\n\n\n<a id=\"login\"></a>\n## Login\n\nThe Ebau TG API requires a valid session token passed in the 'Authorization: Bearer &lt;token&gt;' header for most operations.\n\n<img src='./static/img/login.png'/>\n\n[⬆ Back to top](#top)\n\n<a id=\"mtls\"></a>\n## MTLS\n\nIn addition to username/password, access to the production (ebau.tg.ch) and integration/staging (ebau-qs.tg.ch) systems also requires a client-side certificate for mutual TLS. The certificate can be requested from ebau operations/support (TBD), is linked to a specific municipality and has a lifetime of 5 years (or until revoked).\n\n[⬆ Back to top](#top)\n\n<a id=\"message-queue\"></a>\n## Message Queue\n\nAll messages produced by eBau are placed in a message table in the database ('the queue'). They are created when certain events happen in eBau (e.g. a user clicks on 'submit' or a status change is triggered either by the UI or by another source). They are addressed to a specific organisation (i.e. municipality). Each API user is also assigned to a municipality and cann only retrieve messages addressed to that municipality ID.\n\nMessages can be fetched either from the start of the queue, or the next message after a specific previously retrieved one can be fetched by passing the id of the last message. In addition, a specific message can be refetched using its ID.\n\n[⬆ Back to top](#top)\n\n<a id=\"dossier-identification\"></a>\n## Dossier Identification\n\nThe dossier the message is for is extracted from the otherID node that has an idCategory of ebauId:\n\n\t<ech-0211:otherID>\n\t\t<ech-0129:IdCategory>ebauId</ech-0129:IdCategory>\n\t\t<ech-0129:Id>142</ech-0129:Id>\n\t</ech-0211:otherID>\n\nSince it was unclear when to use otherID and when localID, eBau actually also processes the localID, such that this will also find the same dossier:\n\n\t<ech-0211:localID>\n\t\t<ech-0129:IdCategory>ebauId</ech-0129:IdCategory>\n\t\t<ech-0129:Id>142</ech-0129:Id>\n\t</ech-0211:localID>\n\n\nThe field 'Dossier Nr. Gemeinde' is populated with data from the external systems on receipt of the first 'in progress' status message. The value is extracted from:\n\n\t<ech-0211:localID>\n\t\t<ech-0129:IdCategory>dossierNrGemeinde</ech-0129:IdCategory>\n\t\t<ech-0129:Id>FOO42-1337</ech-0129:Id>\n\t</ech-0211:localID>\n\nFor synchronisation purposes the currently displayed 'Status' of a dossier on the eBau portal (not necessarily an eCH one) is also adde to the ID properties: \n\n\t<ech-0211:otherID>\n\t\t<ech-0129:IdCategory>ebauDisplayStatus</ech-0129:IdCategory>\n\t\t<ech-0129:Id>Eingereicht</ech-0129:Id>\n\t</ech-0211:otherID>\n\n[⬆ Back to top](#top)\n\n<a id=\"municipality-identification\"></a>\n## Municipality Identification\n\nFor some possible future use cases (e.g. pass dossier to different municipality) we will need to be able to identify municpalities. We currently use a combination of uidOrganisationIdCategorie (sic) and uidOrganisationId and match it against the UIDs registered in eBau (ignoring . characters):\n\n\t<ns4:uid>\n\t    <ns4:uidOrganisationIdCategorie>CHE</ns4:uidOrganisationIdCategorie>\n\t    <ns4:uidOrganisationId>115081491</ns4:uidOrganisationId>\n\t</ns4:uid>\n\nis matched to the UID CHE-115.081.491 (Frauenfeld) in eBau.\n\n[⬆ Back to top](#top)\n\n<a id=\"special-uses-of-ech-attributes\"></a>\n## Special uses of eCH attributes\n\n<a id=\"intendedpurpose\"></a>\n### intendedPurpose\n\nBoth eBau and BOA (the kanton's processing application) use multiple values for 'intended purpose', however eCH only has one occurence of the node in the XML structure.\n\neBau transfers the value as a comma-separated list of (English) strings:\n\n* residential_use\n* commercial_and_industrial_use\n* agricultural_use\n* public_use\n* other_use\n\n[⬆ Back to top](#top)\n\n<a id=\"status\"></a>\n## Status\n\nThe following image depicts the status transitions modelled in eBau TG. Click for full version.\n\n<a href='./static/img/state_machine_ebau.svg' target='_blank'><img src='./static/img/state_machine_ebau.svg' width='600px'></a>\n\n### Notes on the Status Model\n\n<ul>\n<li>The status “Building Approval” is not used in the canton of Thurgau.</li>\n<li>In the canton of Thurgau, the additional statuses “Nachforderung Dokumente (Gemeinde)” and “Request for Additional Documents” are used, which are not provided for in the eCH standard. A building application in the status “Request for Additional Documents” can be edited again and resubmitted by the applicant.</li>\n</ul>\n\n[⬆ Back to top](#top)\n\n<a id=\"messages\"></a>\n## Messages\n\nThe eCH-0058 messageType in the header is only added for legacy reasons (eCH-0058 requires the node to be present). The values in this node is to be ignored by external systems (in terms of business logic) and it is also completely ignored by eBau/ePlan.\n\nFor consistency and to possibly make parsing easier/faster, the following table lists the various messageType / event type node combinations:\n\n0058 header messageType | node name of the event in the xml structure | events\n---|---|---\n5100000 | eventSubmitPlanningPermissionApplication | submit\n5100001 | eventSubmitPlanningPermissionApplication | file subsequently\n5100004 | eventAccompanyingReport | accompanying report\n5100013 | eventCloseArchiveDossier | close dossier\n5100014 | eventCloseArchiveDossier | archive dossier\n5100039 | eventNotice | notice ruling\n5200000 | eventBaseDelivery | base delivery\n5200004 | eventRequest | claim, task, withdraw\n5200030 | eventStatusNotification | status notification\n\n\n<a id=\"general-notes\"></a>\n### General Notes\n\n* There is no direct communication between the BOA and the municipal specialist system. All messages between the canton and the municipal specialist system are transferred via eBau.\n* The cantonal system BOA cannot display or record remarks, which is why messages to and from the canton can only be transmitted as documents.\n* The eCH standard does not define message types for 'status notifications', so proprietary values are used here.\n\n<a id=\"specific-notes\"></a>\n### Specific Notes\n\n#### Status Messages\n\nIn eBau Thurgau, statuses can only be set by the municipal building administration system. The applicant has no way of changing the status of the building application themselves (e.g., for construction freeze or suspension) except for submitting or resubmitting documents.\n\n#### Deciding and Issuing the Building Application\n\nThe status messages 'Decision Issued' and 'Decision Legally Binding' must be transmitted separately from the type of decision because there is no event type that can handle both.\n\n_Processes_\n\n1.  Decision issued: municipal system sends `notice ruling` & `status notification 'decision issued'`\n2.  Decision legally binding: municipal system sends `status notification 'decision legally binding'`\n\n\n#### Requesting and Fulfilling Additional Documents\n\nRequests for additional documents in eBau are generally fulfilled and transmitted via the municipality, meaning there are no direct requests from the canton to the applicant.\n\n_Processes_\n\n1.  Municipality circulates to the canton: `task 12001`\n2.  Canton requests documents: `claim 05001`\n    \n→ Case 1: \n3. Municipality fulfills request directly: `task 12001`\n\n→ Case 2: \n3. Municipality submits request to the applicant: `claim 05001` \n5. Applicant fulfills request: `file subsequently` \n5. Municipality fulfills request: `task 12001`\n\n#### Objections\n\nContrary to the eCH standard, eBau Thurgau allows documents to be attached in the `status notification 'objection pending'`. Objection documents can thus be transmitted to the applicant along with the status notification.\n\n\n<a id=\"messages-produced-by-ebauePlan\"></a>\n### Messages produced by eBau/ePlan:\n\nDeviations from the eCH standard are marked with ⚠️.\n\n<table>\n\t<thead>\n\t\t<tr>\n\t\t\t<th width='200px'>Message</th>\n\t\t\t<th>EventType</th>\n\t\t\t<th>Message-Type</th>\n\t\t\t<th width='50px'>Status</th>\n\t\t\t<th width='75'>Extension</th>\n\t\t\t<th>Sender</th>\n\t\t\t<th>Receiver</th>\n\t\t\t<th width='50px'>Remark</th>\n\t\t\t<th width='75px'>Document</th>\n\t\t\t<th>Meaning</th>\n\t\t\t<th>Example</th>\n\t\t</tr>\n\t</thead>\n\t<tbody>\n\t\t<tr>\n\t\t\t<td>5.1 eventSubmit*</td>\n\t\t\t<td>submit</td>\n\t\t\t<td>11001</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>Building application submitted, Status “Baugesuch eingereicht”</td>\n\t\t\t<td><a href='./static/xml/submit.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.1 eventSubmit</td>\n\t\t\t<td>file subsequently</td>\n\t\t\t<td>07001</td>\n\t\t\t<td></td>\n\t\t\t<td></td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td></td>\n\t\t\t<td></td>\n\t\t\t<td>Documents submitted subsequently by the applicant to the municipality.</td>\n\t\t\t<td><a href='./static/xml/filesubsequently_out.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.2 eventRequest</td>\n\t\t\t<td>claim</td>\n\t\t\t<td>05001</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>(BOA** -&gt;) eBau</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>⛔️ ⚠️</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>Request for additional documents from the canton to the municipality. The request is transmitted as a PDF document.</td>\n\t\t\t<td><a href='./static/xml/claim_out.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.2 eventRequest</td>\n\t\t\t<td>task</td>\n\t\t\t<td>12003</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>Notification from applicant to the municipality (Generic message from the applicant, also for reporting construction processes)</td>\n\t\t\t<td><a href='./static/xml/task_out.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.2 eventRequest</td>\n\t\t\t<td>task</td>\n\t\t\t<td>12006</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>(BOA -&gt;) eBau</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>⛔️ ⚠️</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>Notification from the canton to the municipality. Notifications are transmitted as PDF documents.</td>\n\t\t\t<td><a href='./static/xml/task_out_kanton.xml' target='_blank'>Example</a></td>\n\t\t</tr>\t\t\n\t\t<tr>\n\t\t\t<td>5.4 eventStatusNotification</td>\n\t\t\t<td>status notification</td>\n\t\t\t<td>10101 ⚠️</td>\n\t\t\t<td>submitted</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>Sent when applicant submits a PPA (after submit).</td>\n\t\t\t<td><a href='./static/xml/status_notification_submitted.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.9 eventAccompanyingReport</td>\n\t\t\t<td>accompanying report</td>\n\t\t\t<td>01001</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>(BOA -&gt;) eBau</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>⛔️ ⚠️</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>Report from the canton. The reports are transmitted as pdf-documents. The &lt;ech-0211:judgement&gt; node contains a value from the 'judegment types' list (see further below). </td>\n\t\t\t<td><a href='./static/xml/event_accompanying_report_out.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.11 baseDelivery</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>Complete data delivery</td>\n\t\t\t<td><a href='./static/xml/base_delivery.xml' target='_blank'>Example</a></td>\n\t\t</tr>\t\t\n\t</tbody>\n</table>\n\n\n<a id=\"messages-consumed-by-ebau\"></a>\n### Messages consumed by eBau\n\n<table>\n\t<thead>\n\t\t<tr>\n\t\t\t<th width='200px'>Message</th>\n\t\t\t<th>EventType</th>\n\t\t\t<th>Message-Type</th>\n\t\t\t<th width='50px'>Status</th>\n\t\t\t<th width='75'>Extension</th>\n\t\t\t<th>Sender</th>\n\t\t\t<th>Receiver</th>\n\t\t\t<th width='50px'>Remark</th>\n\t\t\t<th width='75px'>Document</th>\n\t\t\t<th>Meaning</th>\n\t\t\t<th>Example</th>\n\t\t</tr>\n\t</thead>\n\t<tbody>\n\t\t<tr>\n\t\t\t<td>5.1 eventSubmit*</td>\n\t\t\t<td>submit</td>\n\t\t\t<td>TBD</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>Register a \"paper dossier\".<br/><ul><li>Do not send documents</li><li>Include municipality UID (see <a href=\"#named-meta\">Named Meta Data</a> and <a href='./static/csv/municipality_uids.csv' target='_blank'>municipality_uids.csv</a>)</li><li>Must have a dossierIdentification in planningPermissionApplicationIdentification</li><li>Must have an dossierNrGemeinde in planningPermissionApplicationIdentification (localId or otherId)</li></ul></td>\n\t\t\t<td><a href='./static/xml/submit_in.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.2 eventRequest</td>\n\t\t\t<td>claim</td>\n\t\t\t<td>05001</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>Request for additional documents from the municipality to the applicant.</td>\n\t\t\t<td><a href='./static/xml/claim_in.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.2 eventRequest</td>\n\t\t\t<td>task</td>\n\t\t\t<td>12001</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau (-&gt; BOA)</td>\n\t\t\t<td>⛔️ ⚠️</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>Transmission to the canton &amp; fulfillment of requests by the municipality towards the canton. “Remarks” cannot be displayed in the cantonal system and should therefore not be used.</td>\n\t\t\t<td><a href='./static/xml/task_kanton_weiterleiten_in.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.2 eventRequest</td>\n\t\t\t<td>task</td>\n\t\t\t<td>12002</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>Notification from the municipality (to applicant)</td>\n\t\t\t<td><a href='./static/xml/task_in.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.2 eventRequest</td>\n\t\t\t<td>task</td>\n\t\t\t<td>12100</td>\n\t\t\t<td>-</td>\n\t\t\t<td><a href='#publication-type'>publicationType</a></td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>Start a new publication for a BG or edit/replace an existing one.</td>\n\t\t\t<td><a href='./static/xml/task_start_edit_publication.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.2 eventRequest</td>\n\t\t\t<td>task</td>\n\t\t\t<td>12101</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>Remove/destroy all publications for a given BG.</td>\n\t\t\t<td><a href='./static/xml/task_stop_publication.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.3 eventNotice</td>\n\t\t\t<td>notice ruling</td>\n\t\t\t<td>09003</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅ ⚠️</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>Building application ruling. The remark must be provided in the &lt;ruling&gt; element (see “some kind of text“ in the sample XML).</td>\n\t\t\t<td><a href='./static/xml/notice_ruling_09003.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.4 eventStatusNotification</td>\n\t\t\t<td>status notification</td>\n\t\t\t<td>10102 ⚠️</td>\n\t\t\t<td>in progress</td>\n\t\t\t<td>proceeding type ⚠️</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>Confirm receipt and set building application to “in process”. Within the notification, the municipal building application number and the procedure type can also be communicated. The procedure type is communicated within the extension. This is also used to lift the statuses “objection pending” and “suspended.”</td>\n\t\t\t<td><a href='./static/xml/status_in_progress_in.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.4 eventStatusNotification</td>\n\t\t\t<td>status notification</td>\n\t\t\t<td>10103 ⚠️</td>\n\t\t\t<td>withdrawn</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>Status “Baugesuch zurückgezogen”. Can only be set by the municipality.</td>\n\t\t\t<td><a href='./static/xml/status_notification_withdrawn_in.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.4 eventStatusNotification</td>\n\t\t\t<td>status notification</td>\n\t\t\t<td>10104 ⚠️</td>\n\t\t\t<td>suspended</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>Status “Baugesuch sistiert”. Can only be set by the municipality.</td>\n\t\t\t<td><a href='./static/xml/status_notification_suspended_in.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.4 eventStatusNotification</td>\n\t\t\t<td>status notification</td>\n\t\t\t<td>10106 ⚠️</td>\n\t\t\t<td>objection pending</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>✅ ⚠️</td>\n\t\t\t<td>Status “Einsprache eingegangen”. Objection received. Attaching documents is allowed contrary to the eCH standard.</td>\n\t\t\t<td><a href='./static/xml/status_notification_objection_pending_in.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.4 eventStatusNotification</td>\n\t\t\t<td>status notification</td>\n\t\t\t<td>10108 ⚠️</td>\n\t\t\t<td>appellant process</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>Status “Rechtsmittelverfahren laufend”</td>\n\t\t\t<td><a href='./static/xml/status_notification_appellant_process_in.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.4 eventStatusNotification</td>\n\t\t\t<td>status notification</td>\n\t\t\t<td>10109 ⚠️</td>\n\t\t\t<td>decision legally binding</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>Status “Entscheid rechtskräftig”</td>\n\t\t\t<td><a href='./static/xml/status_notification_legally_binding.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.4 eventStatusNotification</td>\n\t\t\t<td>status notification</td>\n\t\t\t<td>10110 ⚠️</td>\n\t\t\t<td>under construction</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>Status “Bauvorhaben im Bau”</td>\n\t\t\t<td><a href='./static/xml/status_notification_under_construction_in.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.4 eventStatusNotification</td>\n\t\t\t<td>status notification</td>\n\t\t\t<td>10111 ⚠️</td>\n\t\t\t<td>building freeze</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>Status “Baueinstellung”</td>\n\t\t\t<td><a href='./static/xml/status_notification_building_freeze.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.4 eventStatusNotification</td>\n\t\t\t<td>status notification</td>\n\t\t\t<td>10113 ⚠️</td>\n\t\t\t<td>dossier closed</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>Status “Dossier geschlossen”. Use either this or eventCloseArchiveDossier, the effects are the same.</td>\n\t\t\t<td><a href='./static/xml/status_notification_dossier_closed_in.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.4 eventStatusNotification</td>\n\t\t\t<td>status notification</td>\n\t\t\t<td>10112 ⚠️</td>\n\t\t\t<td>dossier archived</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>Status “Dossier archived. Use either this or eventCloseArchiveDossier, the effects are the same.</td>\n\t\t\t<td><a href='./static/xml/status_notification_dossier_archived_in.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.5 eventCloseArchiveDossier</td>\n\t\t\t<td>close dossier</td>\n\t\t\t<td>06001</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>Notification that the dossier will be closed. Status “Dosser geschlossen”</td>\n\t\t\t<td><a href='./static/xml/close_dossier.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t\t<tr>\n\t\t\t<td>5.5 eventCloseArchiveDossier</td>\n\t\t\t<td>archive dossier</td>\n\t\t\t<td>03001</td>\n\t\t\t<td>-</td>\n\t\t\t<td>-</td>\n\t\t\t<td>municipal system</td>\n\t\t\t<td>eBau</td>\n\t\t\t<td>✅</td>\n\t\t\t<td>⛔️</td>\n\t\t\t<td>Notification that the dossier will be archived. Status “Dossier archiviert”</td>\n\t\t\t<td><a href='./static/xml/archive_dossier.xml' target='_blank'>Example</a></td>\n\t\t</tr>\n\t</tbody>\n</table>\n\n&ast; short for _eventSubmitPlanningPermissionApplication_\n\n&ast;&ast; BOA: cantonal system 'Bau- und Ortsplanungs-Applikation'\n\n[⬆ Back to top](#top)\n\n<a id=\"extensions\"></a>\n## Extensions\n\nThe following extensions can be used. They were created for the interaction with the kanton's BOA system.\n\n<a id=\"suspension\"></a>\n### Suspension (used only on Kanton-side of API, kept here for reference and possible future use)\n\nIn order to deal with several suspensions happening in parallel, they can be identified. However, these suspensions must be individually cancelled using the same extensions in subsequent 'In Progress' status notifications. If only an 'on/off' approach is used, this extension is not required. \n\neBau/ePlan itself only uses the on/off approach when passing information on to third party systems, i.e. this extension is only read, not written.\n\n\t<ech-0211:extension xsi:type='suspensionType' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>\n        <objAddress>COO.2187.9900.3.972269</objAddress>\n        <startDate>2023-05-01T00:00:00.000+02:00</startDate>\n        <endDate>2023-05-02T00:00:00.000+02:00</endDate>\n    </ech-0211:extension>\n\n\n<a id=\"proceeding-type\"></a>\n### Proceeding type\n\n\t<ech-0211:extension xsi:type='proceedingType' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'>\n    \t<ech-0211:proceedingType>Ordinary procedure</ech-0211:proceedingType>\n\t</ech-0211:extension>\n\nThe following values are currently understood/accepted by eBau:\n\n* Ordinary procedure\n* Simplified procedure\n\n\n<a id=\"publication-type\"></a>\n### Publication type\n\nKlick on \"Show Extension...\" below to see the full XML structure.\n\n<details>\n<summary>Show extension XML</summary>\n\n\t<ech-0211:extension>\n\t  <publicationType>\n\t    <parcelNumber></parcelNumber>\n\t    <title></title>\n\t    <usageZone></usageZone>\n\t    <street></street>\n\t    <zipCode></zipCode>\n\t    <town></town>\n\t    <publicationFrom></publicationFrom>\n\t    <publicationUntil></publicationUntil>\n\t    <applicants>\n\t      <applicant>\n\t        <ech-0129:identification>\n\t          <ech-0129:personIdentification>\n\t            <ech-0044:officialName></ech-0044:officialName>\n\t            <ech-0044:firstName></ech-0044:firstName>\n\t          </ech-0129:personIdentification>\n\t          <ech-0129:organisationIdentification>\n\t            <ech-0097:uid>\n\t              <ech-0097:uidOrganisationIdCategorie></ech-0097:uidOrganisationIdCategorie>\n\t              <ech-0097:uidOrganisationId></ech-0097:uidOrganisationId>\n\t            </ech-0097:uid>\n\t            <ech-0097:localOrganisationId>\n\t              <ech-0097:organisationIdCategory></ech-0097:organisationIdCategory>\n\t              <ech-0097:organisationId></ech-0097:organisationId>\n\t            </ech-0097:localOrganisationId>\n\t            <ech-0097:organisationName></ech-0097:organisationName>\n\t          </ech-0129:organisationIdentification>\n\t        </ech-0129:identification>\n\t        <ech-0129:address>\n\t          <ech-0010:street></ech-0010:street>\n\t          <ech-0010:houseNumber></ech-0010:houseNumber>\n\t          <ech-0010:town></ech-0010:town>\n\t          <ech-0010:swissZipCode></ech-0010:swissZipCode>\n\t          <ech-0010:country>\n\t            <ech-0010:countryIdISO2></ech-0010:countryIdISO2>\n\t            <ech-0010:countryNameShort></ech-0010:countryNameShort>\n\t          </ech-0010:country>\n\t        </ech-0129:address>\n\t      </applicant>\n\t      <applicant>\n\t        <ech-0129:identification>\n\t          <ech-0129:personIdentification>\n\t            <ech-0044:officialName></ech-0044:officialName>\n\t            <ech-0044:firstName></ech-0044:firstName>\n\t          </ech-0129:personIdentification>\n\t          <ech-0129:organisationIdentification>\n\t            <ech-0097:uid>\n\t              <ech-0097:uidOrganisationIdCategorie></ech-0097:uidOrganisationIdCategorie>\n\t              <ech-0097:uidOrganisationId></ech-0097:uidOrganisationId>\n\t            </ech-0097:uid>\n\t            <ech-0097:localOrganisationId>\n\t              <ech-0097:organisationIdCategory></ech-0097:organisationIdCategory>\n\t              <ech-0097:organisationId></ech-0097:organisationId>\n\t            </ech-0097:localOrganisationId>\n\t            <ech-0097:organisationName></ech-0097:organisationName>\n\t          </ech-0129:organisationIdentification>\n\t        </ech-0129:identification>\n\t        <ech-0129:address>\n\t          <ech-0010:street></ech-0010:street>\n\t          <ech-0010:houseNumber></ech-0010:houseNumber>\n\t          <ech-0010:town></ech-0010:town>\n\t          <ech-0010:swissZipCode></ech-0010:swissZipCode>\n\t          <ech-0010:country>\n\t            <ech-0010:countryIdISO2></ech-0010:countryIdISO2>\n\t            <ech-0010:countryNameShort></ech-0010:countryNameShort>\n\t          </ech-0010:country>\n\t        </ech-0129:address>\n\t      </applicant>\n\t    </applicants>\n\t    <projectAuthors>\n\t      <projectAuthor>\n\t        <ech-0129:identification>\n\t          <ech-0129:personIdentification>\n\t            <ech-0044:officialName></ech-0044:officialName>\n\t            <ech-0044:firstName></ech-0044:firstName>\n\t          </ech-0129:personIdentification>\n\t          <ech-0129:organisationIdentification>\n\t            <ech-0097:uid>\n\t              <ech-0097:uidOrganisationIdCategorie></ech-0097:uidOrganisationIdCategorie>\n\t              <ech-0097:uidOrganisationId></ech-0097:uidOrganisationId>\n\t            </ech-0097:uid>\n\t            <ech-0097:localOrganisationId>\n\t              <ech-0097:organisationIdCategory></ech-0097:organisationIdCategory>\n\t              <ech-0097:organisationId></ech-0097:organisationId>\n\t            </ech-0097:localOrganisationId>\n\t            <ech-0097:organisationName></ech-0097:organisationName>\n\t          </ech-0129:organisationIdentification>\n\t        </ech-0129:identification>\n\t        <ech-0129:address>\n\t          <ech-0010:street></ech-0010:street>\n\t          <ech-0010:houseNumber></ech-0010:houseNumber>\n\t          <ech-0010:town></ech-0010:town>\n\t          <ech-0010:swissZipCode></ech-0010:swissZipCode>\n\t          <ech-0010:country>\n\t            <ech-0010:countryIdISO2></ech-0010:countryIdISO2>\n\t            <ech-0010:countryNameShort></ech-0010:countryNameShort>\n\t          </ech-0010:country>\n\t        </ech-0129:address>\n\t      </projectAuthor>\n\t    </projectAuthors>\n\t  </publicationType>\n\t</ech-0211:extension>\n\n</details>\n\n[⬆ Back to top](#top)\n\n<a id=\"documents\"></a>\n## Documents\n\n<a id=\"uuids\"></a>\n### UUIDs\n\neBau/ePlan assigns RFC 4122 Version 7 uuids to documents created in the application (upload via UI). If a document provided by an external source (API,BOA, ...) has a valid uuid, that uuid will be assigned to the document, otherwise a new one will be generated.\n\nsee <a href='https://uuid.ramsey.dev/en/stable/rfc4122.html' target='_blank'/>https://uuid.ramsey.dev/en/stable/rfc4122.html</a>\n\n<a id=\"file-uploads-and-document-references-in-ech-messages\"></a>\n### File uploads and document references in eCH messages\n\n**Uploads via API are limited to 100MB, the eBau UI limits file sizes to 50MB**\n\n<img src='./static/img/file_upload.png'/>\n\nIn order to prevent duplicate identical files, the following mechanism is used when transferring files to eBau from external systems:\n\n1. Upload file to endpoint: If a UUID is provided and unique, the document is stored with that UUID. \n1. If no UUID is provided, eBau checks if a file currently associated with the planning permission application has the same hash. If so, then eBau assumes it is a duplicate, ignores the upload and returns the UUID of the existing document.\n1. If a UUID of an existing document is provided, but the hash of the new file does not match the existing one, then a new version of the existing document is created with the new file and the UUID (identical) is returned.\n1. Reference documents in eCH messages: In subsequent messages to eBau (via send), documents need to be referenced by providing their UUID\n\nExample:\n\n\t <ech-0211:document>\n        <ech-0147T0:uuid>018bcdcb-9dc0-73b0-a9af-9e6b95fa9443</ech-0147T0:uuid>\n        <ech-0147T0:titles>\n            <ech-0039:title>ignored</ech-0039:title>\n        </ech-0147T0:titles>\n        <ech-0147T0:status>ignored</ech-0147T0:status>\n        <ech-0147T0:files>\n            <ech-0147T0:file>\n                <ech-0147T0:pathFileName>ignored</ech-0147T0:pathFileName>\n                <ech-0147T0:mimeType>ignored</ech-0147T0:mimeType>\n            </ech-0147T0:file>\n        </ech-0147T0:files>\n    </ech-0211:document>\n\n\n<a id=\"file-downloads\"></a>\n### File downloads\n\nFiles are downloaded with a GET request to the file endpoint, using the document's id (integer) or uuid (string) instead of the dossier id (as in the upload case). If the ID provided is a valid UUID, the UUID will be used to retrieve the document, else it will be searched by ID (numeric).\n\ne.g. <span>https://ebau.tg.ch/api/v1/file/123</span> will fetch the file with the ID 123, whereas <span>https://ebau.tg.ch/api/v1/file/foo-bar-baz</span> will fetch the file with the UUID 'foo-bar-baz' (assuming that is actually valid here...), ignoring the ID. Both cases require read access to that file to be granted to the user.\n\n<a id=\"versioning\"></a>\n### Versioning\n\nIf an upload is made providing an existing UUID with a new file (hash), then the file is replaced for that document and the version number of that document record is incremented by one. The old content is stored in a separate version. This way the UUID and the internal ID remain constant for that specific document, even though the content may change (e.g. signed version). \n\nDocuments in eCH messages generated by eBau/ePlan include version and hash data. Documents with no version are assigned version nr. 0.\n\nExample:\n\n\t<ech-0211:document>\n        <ech-0147T0:uuid>89</ech-0147T0:uuid>\n        <ech-0147T0:titles>\n            <ech-0039:title>foo.docx</ech-0039:title>\n        </ech-0147T0:titles>\n        <ech-0147T0:status>created</ech-0147T0:status>\n        <ech-0147T0:files>\n            <ech-0147T0:file>\n                <ech-0147T0:pathFileName>http://localhost:9023/webroot/api/api/v1/file/89</ech-0147T0:pathFileName>\n                <ech-0147T0:mimeType>application/vnd.openxmlformats-officedocument.wordprocessingml.document</ech-0147T0:mimeType>\n                <ech-0147T0:version>0</ech-0147T0:version>\n                <ech-0147T0:hashCode>65ea3daedbaa8d935a6d0c81420f87b41fdf1b81e75ee799bb4f201a978cdac1</ech-0147T0:hashCode>\n                <ech-0147T0:hashCodeAlgorithm>sha256</ech-0147T0:hashCodeAlgorithm>\n            </ech-0147T0:file>\n        </ech-0147T0:files>\n        <ech-0147T0:documentKind>decision_ruling</ech-0147T0:documentKind>\n    </ech-0211:document>\n\n\n<a id=\"document-categories\"></a>\n### Document categories\n\nDocuments uploaded via the UI are often assigned a category. This category is passed on in the messages generated by ebau in a ech-0147T0:documentKind node.\n\nThe main purpose for this has been to place the documents in the right 'bucket' for Planungsgesch$ft objects in the management system of the kanton (BOA) when submitting from ePlan.\n\nThe category cannot be set or changed over the public api.\n\neBau (and ePlan) uses the following categories for documents:\n\n*DocumentKind in eBau* | *Document categories in BOA*\n---|---\nrechtsverbindliche_plaene | Rechtsverbindliche Pläne\nergaenzende_plaene | Ergänzende Pläne\nrechtsverbindliche_berichte | Rechtsverbindliche Berichte\nergaenzende_berichte | Ergänzende Berichte\nrichtungsweisende_inhalte | Richtungsweisende Inhalte\nvorschriften | Vorschriften\ntabelle | Tabelle\nfotos | Fotos\nweitere_unterlagen | Weitere Unterlagen\nformulare | Formulare\nplanungsbericht | Planungsbericht\nvorschriften_reglement | Vorschriften Reglement\nplan | Plan\nbericht | Bericht\nbegleitschreiben | Begleitschreiben\nergaenzende_unterlagen | Ergänzende Unterlagen\nshelter_control | Shelter Control\ndecision_ruling | Decision Ruling\nprojektunterlagen | Projektunterlagen\nsituationsplan_katasterplan | Situationsplan/Katasterplan\nentscheid_bewilligung | Entscheid (Bewilligung) und bewilligte Pläne\n\n[⬆ Back to top](#top)\n\n<a id=\"other-listsselectionsvalues\"></a>\n## Other lists/selections/values\n\n<a id=\"named-meta\"></a>\n### Named Meta Data\n\nThe following namedMetaData blocks are provided within <ech-0211:planningPermissionApplication>:\n\n<table>\n\t<thead>\n\t\t<tr>\n\t\t\t<td>metaDataName</td>\n\t\t\t<td>sample metaDataValue</td>\n\t\t\t<td>description</td>\n\t\t</tr>\t\n\t</thead>\n\t<tbody>\n\t\t<tr><td>boa_type</td><td>bg</td><td>used in the kanton system to distinguish between Baugesuch and Planungsgeschäft (ePlan) dossiers</td></tr>\n\t\t<tr><td>status</td><td>submitted</td><td>eCH status</td></tr>\n\t\t<tr><td>non-municipality_name</td><td>Frauenfeld</td><td>The name of the municpality in which the BG was submitted</td></tr>\n\t\t<tr><td>municipality_uid</td><td>CHE-115.082.125</td><td>Unternehmens-Identifikationsnummer of the municpality (<a href='https://www.estv.admin.ch/de/unternehmens-identifikationsnummer-uid'>https://www.estv.admin.ch/de/unternehmens-identifikationsnummer-uid</a>)</td></tr>\n\t\t<tr><td>construction_project_type</td><td>building_extension</td><td>Value from 'Art des Bauvorhaben'</td></tr>\n\t\t<tr><td>papierdossier</td><td>true</td><td>true/false</td></tr>\n\t</tbody>\n</table>\n\n[⬆ Back to top](#top)\n\n<a id=\"judgement-types\"></a>\n### Judgement types\n\neBau uses the following judgement type values in &lt;ech-0211:decisionRuling&gt; (notice ruling) as well as the &lt;ech-0211:judgement&gt; (accompanying report) elements.\n\n\n<table>\n\t<thead>\n\t\t<tr>\n\t\t\t<td>transmitted eCH value</td>\n\t\t\t<td>display value eBau</td>\n\t\t\t<td>counts as approved</td>\n\t\t</tr>\t\n\t</thead>\n\t<tbody>\n\t\t<tr><td>Positive</td><td>bewilligt</td><td>yes</td></tr>\n\t\t<tr><td>Positive with conditions</td><td>bewilligt mit Vorbehalt</td><td>yes</td></tr>\n\t\t<tr><td>non-approval of introduction</td><td>Nicht eintreten</td><td>no</td></tr>\n\t\t<tr><td>rejected</td><td>abgelehnt</td><td>no</td></tr>\n\t</tbody>\n</table>\n\n[⬆ Back to top](#top)\n\n<a id=\"errors\"></a>\n## Errors\n\nIn order to get through the AFI-TG-WAF application errors are returned with a 400 code. The specific error code and message can be taken from the 'error' object in the response JSON.\n\nThe WAF also converts 403 responses into HTML. Thus access denied errors are also returned with an HTTP 400 code.\n\n**Error Codes:**\n\nCode | German text\n---|---\n104 | Kein Baugesuch mit der ID gefunden: &lt;ID&gt;\n123 | Datenbank Fehler\n404 | Zugriff verweigert\n1000 | Unbekannter Status: &lt;Status-Bezeichnung&gt;\n1001 | Statusübergang nicht erlaubt: &lt;alter Status&gt; -&gt; &lt;neuer Status&gt;\n2001 | Ungültige Daten für Sistierung\n3001 | Ungültige Daten für Entscheid\n4001 | Ungültiger Input für ein Submit\n4002 | Ungültiger Input für Publikation\n\n[⬆ Back to top](#top)",
+        "version": "1.0.0"
+    },
+    "components": {
+        "securitySchemes": {
+            "HeaderSessionToken": {
+                "type": "http",
+                "scheme": "bearer",
+                "name": "Authorization",
+                "in": "header",
+                "description": "Session-based authentication. The session ID is sent via 'Authorization: Bearer <sessionid>'."
+            }
+        },
+        "responses": {
+            "400-GenericError": {
+                "description": "Application error. See the 'error' JSON contents for message and code.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "value": false
+                                },
+                                "error": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": { "type": "integer" },
+                                        "msg": { "type": "string" }
+                                    }
+                                }
+                            }
+                        },
+                        "example": {
+                            "success": false,
+                            "error": {
+                                "code": 123,
+                                "msg": "Datenbank Fehler"
+                            }
+                        }
+                    }
+                }
+            },
+            "403-AccessDenied": {
+                "description": "Access denied for resource. Please choose the correct authentication mechanism/credentials.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "value": false
+                                },
+                                "error": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": { "type": "integer" },
+                                        "msg": { "type": "string" }
+                                    }
+                                }
+                            }
+                        },
+                        "example": {
+                            "success": false,
+                            "error": {
+                                "code": 403,
+                                "msg": "Access is denied."
+                            }
+                        }
+                    }
+                }
+            },
+            "404-FileNotFound": {
+                "description": "The requested resource was not found on the server.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "boolean",
+                                    "value": false
+                                },
+                                "error": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": { "type": "integer" },
+                                        "msg": { "type": "string" }
+                                    }
+                                }
+                            }
+                        },
+                        "example": {
+                            "success": false,
+                            "error": {
+                                "code": 404,
+                                "msg": "file not found"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    "security": [
+
+    ],
+
+    "tags": [
+        {
+            "name": "Session-based Authentication",
+            "description": "Operations for log in and out"
+        },
+        {
+            "name": "eCH fetch",
+            "description": "Fetch eCH messages from eBau/ePlan"
+        },
+        {
+            "name": "eCH send",
+            "description": "Send eCH messages to eBau/ePlan"
+        }
+    ],
+
+
+
+
+    "paths": {
+        "/api/v1/login": {
+            "post": {
+                "description": "Log in using a username / password to get a valid session token. The token can then be used in the Authorization header",
+                "tags": ["Session-based Authentication"],
+                "security": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "username": { "type": "string" },
+                                    "password": { "type": "string"}
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "value": true
+                                        },
+                                        "token": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/403-AccessDenied"
+                    }
+                }
+            }
+        },
+        "/api/v1/logout": {
+            "post": {
+                "description": "Logout and terminate session",
+                "tags": ["Session-based Authentication"],
+                "security": [
+                    {
+                        "HeaderSessionToken": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "username": { "type": "string" },
+                                    "password": { "type": "string"}
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "value": true
+                                        },
+                                        "session": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/403-AccessDenied"
+                    }
+                }
+            }
+        },
+        "/api/v1/application/{id}": {
+             "get": {
+                "description": "Get a baseDelivery XML for the planning permission application ('Baugesuch' or 'Planungsgeschäft') with the given eBau-ID",
+                "security": [
+                    {
+                        "HeaderSessionToken": []
+                    }
+                ],
+                "parameters": [
+                ],
+                "produces": [
+                    "application/xml"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "eCH-0211 baseDelivery"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/400-GenericError"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/404-FileNotFound"
+                    }
+                },
+                "summary": "Get baseDelivery for instance",
+                "tags": [
+                    "eCH fetch"
+                ]
+            },
+            "parameters": [
+                {
+                    "description": "The eBau-ID of the requested instance",
+                    "in": "path",
+                    "name": "id",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/v1/message/": {
+             "get": {
+                "description": "Get the next message for the current municipality",
+                "security": [
+                    {
+                        "HeaderSessionToken": []
+                    }
+                ],
+                "parameters": [
+                ],
+                "produces": [
+                    "application/xml"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "eCH-0211 message"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/400-GenericError"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/404-FileNotFound"
+                    }
+                },
+                "summary": "Get eCH message",
+                "tags": [
+                    "eCH fetch"
+                ]
+            },
+            "parameters": [
+                {
+                    "description": "ID of last message. Can be found in `delivery.deliveryHeader.messageId`. If omitted, first message is returned",
+                    "in": "query",
+                    "name": "last",
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/v1/message/{id}": {
+             "get": {
+                "description": "Get the next message for the current municipality",
+                "security": [
+                    {
+                        "HeaderSessionToken": []
+                    }
+                ],
+                "parameters": [
+                ],
+                "produces": [
+                    "application/xml"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "eCH-0211 message"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/400-GenericError"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/404-FileNotFound"
+                    }
+                },
+                "summary": "Get eCH message",
+                "tags": [
+                    "eCH fetch"
+                ]
+            },
+            "parameters": [
+                {
+                    "description": "The eBau-ID of the requested message",
+                    "in": "path",
+                    "name": "id",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    }
+                }
+            ]
+        },
+        "/api/v1/send/": {
+             "post": {
+                "consumes": [
+                    "application/xml"
+                ],
+                "description": "Send an eCH message to eBau/ePlan",
+                "security": [
+                    {
+                        "HeaderSessionToken": []
+                    }
+                ],
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/xml": {
+                      "schema": {
+                        "type": "string",
+                        "description": "An event wrapped in a [eCH-0211-Delivery](https://www.ech.ch/standards/60526).",
+                        "example": "<Delivery>...</Delivery>"
+                      }
+                    }
+                  }
+                },
+                "produces": [
+                ],
+                "responses": {
+                    "200": {
+                        "description": "message sent",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "value": true
+                                        },
+                                        "data": {
+                                            "type": "boolean",
+                                            "value": true
+                                        },
+                                        "ebauDisplayStatus": {
+                                            "type": "string",
+                                            "description": "The plaintext value displayed as the current status in eBau"
+                                        },
+                                        "ebauId": {
+                                            "type": "integer",
+                                            "description": "The internal eBau ID"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/400-GenericError"
+                    }
+                },
+                "summary": "Send an eCH message",
+                "tags": [
+                    "eCH send"
+                ]
+            },
+            "parameters": [
+            ]
+        },
+        "/api/v1/addDocument/{id}": {
+         "post": {
+            "consumes": [
+                "multipart/form-data"
+            ],
+            "description": "Puts a file to in a specific BG/PG (requires the eBau-ID).",
+            "security": [
+                {
+                    "HeaderSessionToken": []
+                }
+            ],
+            "parameters": [
+               {
+                    "description": "eBau-ID of the BG/PG",
+                    "in": "path",
+                    "name": "id",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "description": "the file name",
+                    "in": "query",
+                    "name": "filename",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "description": "RFC4122 Version 7 UUID (only processed if valid, else ignored)",
+                    "in": "path",
+                    "name": "uuid",
+                    "required": false,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "produces": [
+            ],
+            "responses": {
+                "200": {
+                    "description": "message sent",
+                    "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "value": true
+                                        },
+                                        "api_link": {
+                                            "type": "string",
+                                            "description": "A link to the document using the eCH API"
+                                        },
+                                        "ui_link": {
+                                            "type": "string",
+                                            "description": "A link to the document via the application backend"
+                                        },
+                                        "ui_link_dossier": {
+                                            "type": "string",
+                                            "description": "A link to the main UI for the dossier"
+                                        },
+                                        "uuid": {
+                                            "type": "string",
+                                            "description": "UUID of the document"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                },
+                "400": {
+                    "$ref": "#/components/responses/400-GenericError"
+                },
+                "404": {
+                    "$ref": "#/components/responses/404-FileNotFound"
+                }
+            },
+            "summary": "Upload a file into a BG. If no UUID is provided eBau will check for duplicates (same hash as existing file) wihtin the provided BG. If one is found, the file is ignored and the existing UUID is returned.",
+            "tags": [
+                "eCH send file upload"
+            ]
+        },
+        "parameters": [
+        ]
+    }
+    }
+}

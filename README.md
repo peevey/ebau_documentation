@@ -2,7 +2,7 @@
 
 Dieses Repository dokumentiert eBau Thurgau und erzeugt aus Markdown eine HTML-Website und ein PDF.
 
-Die fachlichen Kapitel stehen in `pages/01-ueberblick.md` bis `pages/05-quellen.md`. Die bereitgestellte Wissensgrundlage liegt in `docs/kontext/eBau_Kontext_fuer_Codex.md`. Ungeprüfte und geplante Aussagen sind in der Dokumentation gekennzeichnet. Der
+Die fachlichen Kapitel stehen in `pages/01-ueberblick.md` bis `pages/06-quellen.md`. Die bereitgestellte Wissensgrundlage liegt in `docs/kontext/eBau_Kontext_fuer_Codex.md`. Ungeprüfte und geplante Aussagen sind in der Dokumentation gekennzeichnet. Der
 GitHub-Actions-Workflow veröffentlicht die Website mit PDF-Download auf GitHub Pages
 und stellt das PDF zusätzlich als Build-Artefakt bereit.
 
@@ -11,7 +11,7 @@ und stellt das PDF zusätzlich als Build-Artefakt bereit.
 Syntax und Beispiele stehen im [Markdown-Cheat-Sheet](MARKDOWN-CHEAT-SHEET.md).
 
 - `pages/index.md`: Titel und Sprache als YAML-Metadaten.
-- `pages/01-ueberblick.md` bis `pages/05-quellen.md`: fachliche Kapitel; weitere Kapitel als `.md` in `pages/` ergänzen.
+- `pages/01-ueberblick.md` bis `pages/06-quellen.md`: fachliche Kapitel; weitere Kapitel als `.md` in `pages/` ergänzen.
 - `assets/images/`: Bilder für HTML und PDF.
 
 Der Build liest zuerst `index.md`, danach alle weiteren Markdown-Dateien in
@@ -77,3 +77,5 @@ GITHUB_REPOSITORY=peevey/ebau_documentation DOCS_EDIT_BRANCH=main bash scripts/b
 Neue Veröffentlichungen lösen veraltete Workflow-Läufe ab. Der Build ist auf
 15 Minuten begrenzt, die Werkzeuginstallation auf 10 Minuten. Die Installation
 verzichtet auf empfohlene Zusatzpakete und begrenzt Netzwerk-Wartezeiten.
+
+Das API-Kapitel in `pages/05-api.md` fasst die öffentlich dokumentierte eCH-Schnittstelle zusammen. Der abgerufene Quellenstand liegt unter `docs/api/`; Laufzeitverhalten und offene Spezifikationsfragen sind separat zu prüfen.
