@@ -4,6 +4,8 @@
 
 Die «Zentrale» ist der Übersichtsbereich eines Gesuchs. Sie zeigt Stammdaten, den Status, Mitteilungen, Dokumente und die jeweils verfügbaren Aktionen. Die eBau-Nr. identifiziert das Gesuch im Portal. Die BG-Nr. Gemeinde stammt aus der gemeindeseitigen Bearbeitung. Die BG-Nr. Kanton wird bei einer Weiterleitung an den Kanton vergeben. Die Schulung nennt an einer Stelle irrtümlich die Übermittlung an die Gemeinde als Auslöser; hier wird der konsistente Ablauf aus FAQ und Projektkontext verwendet. [S2, S4, K]
 
+Das hier hätte noch ergänzt müssen.
+
 ## Status und Handlungsbedarf
 
 Die folgende Auswahl beschreibt zentrale Zustände. Sie ist keine vollständige technische Statusliste und keine Festlegung aller zulässigen Übergänge. Status und einzelne Mitteilungstypen werden in der Schulung teilweise gemeinsam aufgeführt. [S2, S4]
