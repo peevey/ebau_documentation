@@ -4,7 +4,9 @@
 
 eBau ist das digitale Baugesuchsportal des Kantons Thurgau. Gesuchstellerinnen und Gesuchsteller sowie beauftragte Personen erfassen Baugesuche, ergänzen Pläne und weitere Unterlagen und reichen das Gesuch digital bei der zuständigen Gemeinde ein. Nach der Einreichung dient eBau als Zugang zum Bearbeitungsstand, zu Mitteilungen, Nachforderungen und zum Bauentscheid. Die Gemeinde bleibt für ihr Baubewilligungsverfahren zuständig. [S1, S2, S4]
 
-Die Einführung erfolgt gemeindeweise. Die Gemeinde entscheidet, ob und wann sie eBau einführt. Der Quick-Check zeigt, ob eine Gemeinde angeschlossen ist. Die bereitgestellten Unterlagen beschreiben Baugesuche; Bauanfragen und Vorentscheide werden als spätere Erweiterungen genannt. Eine inzwischen erfolgte Umsetzung ist daraus nicht ableitbar. [S2, S4]
+Die Einführung erfolgt gemeindeweise. Die Gemeinde entscheidet, ob und wann sie eBau einführt. Der Quick-Check zeigt, ob eine Gemeinde angeschlossen ist. Die bereitgestellten Unterlagen beschreiben Baugesuche; Bauanfragen und Vorentscheide werden als spätere Erweiterungen genannt. Eine inzwischen erfolgte Umsetzung ist daraus nicht ableitbar.
+
+Ich möchte hier noch einen **fetten Text** haben und hier etwas *kursives*. [S2, S4]
 
 ## Komponenten und Datenfluss
 
