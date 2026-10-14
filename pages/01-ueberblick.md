@@ -8,6 +8,21 @@ Die Einführung erfolgt gemeindeweise. Die Gemeinde entscheidet, ob und wann sie
 
 Ich möchte hier noch einen **fetten Text** haben und hier etwas *kursives*. [S2, S4]
 
+> [!NOTE]
+> Useful information that users should know, even when skimming content.
+
+> [!TIP]
+> Helpful advice for doing things better or more easily.
+
+> [!IMPORTANT]
+> Key information users need to know to achieve their goal.
+
+> [!WARNING]
+> Urgent info that needs immediate user attention to avoid problems.
+
+> [!CAUTION]
+> Advises about risks or negative outcomes of certain actions.
+
 ## Komponenten und Datenfluss
 
 | Komponente | Aufgabe und Verbindung |
