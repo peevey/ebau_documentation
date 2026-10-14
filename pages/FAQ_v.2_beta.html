@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Interne Arbeitshilfe GS – DBU TG</title>
+  <style>
+    :root {
+      --bg: #f2f6fa;
+      --card: #ffffff;
+      --ink: #1d2b3a;
+      --muted: #5b6b7d;
+      --accent: #2f6290;
+      --accent-dark: #234a6e;
+      --accent-soft: #e7f0f8;
+      --violet: #5b2f91;        /* Rubriken-Band */
+      --violet-dark: #3d1d66;
+      --violet-light: #e4d6fb;  /* aktive Rubrik und Titel */
+      --border: #d8e2ec;
+      --ok: #2e7d5b;
+      --shadow: 0 1px 2px rgba(29, 43, 58, 0.05), 0 6px 18px rgba(29, 43, 58, 0.06);
+      --radius: 12px;
+      --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--ink);
+      background: var(--bg);
+      min-height: 100vh;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: var(--accent-dark);
+      background: linear-gradient(180deg, #2f6290 0%, #234a6e 100%);
+      color: #fff;
+      padding: 1.1rem 1.25rem;
+      box-shadow: 0 2px 10px rgba(29, 43, 58, 0.18);
+    }
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      color: var(--violet-light);
+    }
+    .brand p {
+      margin: 0.15rem 0 0;
+      color: #d6e4f1;
+      font-size: 0.85rem;
+    }
+    .brand .dept { margin: 0 0 0.15rem; }
+    .brand .credit {
+      margin-top: 0.2rem;
+      font-size: 0.72rem;
+      color: #a9c3dc;
+      letter-spacing: 0.01em;
+    }
+    .search-wrap {
+      flex: 0 1 260px;
+      max-width: 260px;
+      position: relative;
+    }
+    .search-wrap input {
+      width: 100%;
+      padding: 0.4rem 0.75rem 0.4rem 2rem;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: #fff;
+      font: inherit;
+      color: var(--ink);
+      outline: none;
+    }
+    .search-wrap input { font-size: 0.85rem; }
+    .search-wrap input:focus {
+      box-shadow: 0 0 0 3px rgba(169, 195, 220, 0.6);
+    }
+    .search-wrap::before {
+      content: "⌕";
+      position: absolute;
+      left: 0.8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 1rem;
+      pointer-events: none;
+    }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.25rem 1.25rem 3rem;
+    }
+    .quick {
+      order: 4;
+      flex-basis: 100%;
+      display: grid;
+      grid-template-columns: auto auto auto;
+      justify-content: start;
+      align-items: center;
+      gap: 0.3rem 0.35rem;
+      padding: 0.5rem 0.75rem;
+      background: #1a3a58;
+      border: 1px solid rgba(143, 184, 222, 0.28);
+      border-radius: 10px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    .person { display: contents; }
+    .quick-title {
+      grid-column: 1 / -1;
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      color: #fff;
+      margin-bottom: 0.1rem;
+    }
+    .person-name {
+      font-size: 0.78rem;
+      color: #f1f6fb;
+      white-space: nowrap;
+      padding-right: 0.25rem;
+    }
+
+    .qbtn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      text-decoration: none;
+      font-size: 0.74rem;
+      color: #eef4fa;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 6px;
+      padding: 0.18rem 0.45rem;
+      white-space: nowrap;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .qbtn:hover { background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.4); }
+    .qbtn svg { width: 12px; height: 12px; flex: none; }
+    .qbtn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    @media (max-width: 560px) {
+      .quick { grid-template-columns: auto auto auto; }
+
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 1.1rem;
+    }
+    header .filters {
+      order: 5;
+      flex-basis: 100%;
+      margin: 0;
+      padding-top: 0.6rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      gap: 0.35rem;
+    }
+    .chip {
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.08);
+      color: #e3edf6;
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      font: inherit;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+    .chip:hover { background: rgba(255, 255, 255, 0.18); border-color: rgba(255, 255, 255, 0.45); }
+    .chip.active {
+      background: #fff;
+      border-color: #fff;
+      color: var(--accent-dark);
+      font-weight: 600;
+    }
+    header .chip:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    .meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 0.85rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .faq-list { display: grid; gap: 0.85rem; }
+    details.card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    details.card { border-left: 4px solid transparent; transition: border-color 0.15s ease; }
+    details.card:hover { border-left-color: #b9cfe4; }
+    details.card[open] { border-color: #c3d4e5; border-left-color: var(--accent); }
+    summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 1rem 1.1rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.75rem;
+      align-items: start;
+    }
+    summary::-webkit-details-marker { display: none; }
+    .q-main { min-width: 0; }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 0.35rem;
+    }
+    .tag {
+      font-size: 0.75rem;
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .question {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .chev {
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      margin-top: 0.15rem;
+    }
+    details[open] .chev { transform: rotate(90deg); }
+    .body {
+      padding: 0 1.1rem 1.1rem;
+      border-top: 1px solid transparent;
+    }
+    details[open] .body { border-top-color: var(--border); padding-top: 0.9rem; }
+    .hint {
+      margin: 0 0 0.75rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+    .answer {
+      margin: 0;
+      font-family: var(--font);
+      background: #fff !important;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 0.45rem 0.8rem;
+      font: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .btn:hover { border-color: #9fb9d3; }
+    .btn.small {
+      font-size: 0.76rem;
+      padding: 0.3rem 0.6rem;
+      color: var(--muted);
+    }
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .btn:hover { filter: brightness(0.97); }
+    .btn.copied {
+      background: var(--ok);
+      border-color: var(--ok);
+      color: #fff;
+    }
+    .empty {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--muted);
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+    /* ── Ebenen, Hauptkategorien, KI-Hinweis ── */
+    .topbar {
+      max-width: 960px;
+      margin: -0.35rem auto 0.6rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem 1rem;
+      flex-wrap: wrap;
+    }
+    .platform .dept { margin: 0; font-size: 0.78rem; color: #c9dbec; }
+    .platform .credit { margin: 0.15rem 0 0; font-size: 0.7rem; color: #a9c3dc; }
+    .platform .platform-name { margin: 0.1rem 0 0; font-size: 0.95rem; font-weight: 600; color: #fff; letter-spacing: 0.01em; }
+    .levels-band {
+      max-width: 960px;
+      margin: 0 auto 1.1rem;
+      background: var(--violet);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 10px;
+      padding: 0.5rem;
+      box-shadow: 0 2px 8px rgba(30, 10, 60, 0.35);
+    }
+    .levels {
+      display: flex;
+      gap: 0.45rem;
+      overflow-x: auto;
+      max-width: 100%;
+      scrollbar-width: none;
+    }
+    .level-tab {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+      color: #eef4fa;
+      font: inherit;
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 0.55rem 1.1rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .level-tab:hover { background: rgba(255, 255, 255, 0.24); color: #fff; }
+    .level-tab.active { background: var(--violet-light); border-color: var(--violet-light); color: var(--violet-dark); font-weight: 700; box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3); }
+    .level-tab:focus-visible, .maincat:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    @media (max-width: 640px) {
+      .levels { flex-wrap: wrap; overflow-x: visible; }
+      .level-tab { white-space: normal; text-align: left; }
+    }
+    .ki-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.72rem;
+      color: #e3edf6;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 999px;
+      padding: 0.15rem 0.65rem;
+      white-space: nowrap;
+    }
+    .ki-box { display: flex; flex-direction: column; align-items: flex-end; gap: 0.2rem; }
+    .ki-note { margin: 0; font-size: 0.68rem; color: #a9c3dc; padding-right: 0.3rem; }
+    @media (max-width: 640px) { .ki-box { align-items: flex-start; } .ki-note { padding: 0 0 0 0.3rem; } }
+    .ki-badge::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #8fd3b0;
+    }
+    .maincats {
+      order: 3;
+      flex-basis: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+    .maincat {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(10, 30, 50, 0.25);
+      color: #f1f6fb;
+      border-radius: 8px;
+      padding: 0.35rem 0.75rem;
+      font: inherit;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .maincat:hover { background: rgba(255, 255, 255, 0.14); }
+    .maincat.active { background: #fff; color: var(--accent-dark); border-color: #fff; font-weight: 600; }
+    .quick-empty {
+      grid-column: 1 / -1;
+      font-size: 0.78rem;
+      color: #c9dbec;
+    }
+    #count { white-space: nowrap; }
+    .meta-hint { font-size: 0.8rem; }
+    @media (max-height: 820px), (max-width: 900px) { header { position: static; } }
+    @media (max-width: 640px) { .meta-hint { display: none; } }
+    .meta-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end; }
+    .tag.main { background: #eef0f3; color: var(--muted); }
+    .placeholder {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--muted);
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+    .placeholder strong { display: block; color: var(--ink); font-size: 1rem; margin-bottom: 0.3rem; }
+    .section-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.85rem; }
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1rem 1.1rem;
+    }
+    .section-card h2 { margin: 0 0 0.35rem; font-size: 1rem; }
+    .section-card p { margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.45; }
+    .section-card .soon { display: inline-block; margin-top: 0.6rem; font-size: 0.75rem; color: var(--accent-dark); background: var(--accent-soft); border-radius: 999px; padding: 0.1rem 0.55rem; }
+
+    /* ── Erfassungsmaske ── */
+    dialog.entry {
+      width: min(640px, calc(100vw - 2rem));
+      border: 0;
+      border-radius: var(--radius);
+      padding: 0;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      color: var(--ink);
+    }
+    dialog.entry::backdrop { background: rgba(20, 35, 50, 0.45); }
+    .entry-head { background: var(--accent-dark); color: #fff; padding: 0.9rem 1.2rem; display: flex; justify-content: space-between; align-items: center; }
+    .entry-head h2 { margin: 0; font-size: 1.05rem; }
+    .entry-close { background: transparent; border: 0; color: #fff; font-size: 1.4rem; line-height: 1; cursor: pointer; }
+    .entry-body { padding: 1rem 1.2rem 1.2rem; display: grid; gap: 0.8rem; max-height: calc(100vh - 9rem); overflow-y: auto; }
+    .entry-body label { display: block; font-size: 0.85rem; font-weight: 600; }
+    .entry-body label > input, .entry-body label > select, .entry-body label > textarea { display: block; margin-top: 0.3rem; }
+    .entry-body label span.opt { font-weight: 400; color: var(--muted); }
+    .entry-body input[type=text], .entry-body select, .entry-body textarea {
+      font: inherit; font-weight: 400; font-size: 0.92rem;
+      border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.65rem; width: 100%; min-height: 2.4rem;
+      background: #fff; color: var(--ink);
+    }
+    .entry-body textarea { min-height: 5.5rem; resize: vertical; }
+    .entry-body input:focus, .entry-body select:focus, .entry-body textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .entry-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    .radio-group { display: flex; gap: 1.2rem; flex-wrap: wrap; font-weight: 400; }
+    .radio-group label { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 400; }
+    fieldset.answer-kind { border: 0; padding: 0; margin: 0; }
+    fieldset.answer-kind legend { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; padding: 0; }
+    .entry-note { margin: 0; font-size: 0.8rem; color: #6b4e00; background: #fff8e6; border: 1px solid #f0dfb0; border-radius: 8px; padding: 0.5rem 0.7rem; }
+    .entry-msg { margin: 0; font-size: 0.85rem; border-radius: 8px; padding: 0.55rem 0.75rem; }
+    .entry-msg.err { background: #fdecec; color: #8a1c1c; border: 1px solid #f3c2c2; }
+    .entry-msg.ok { background: #e5f4ec; color: #1f6b47; border: 1px solid #bfe3cf; }
+    .entry-foot { display: flex; justify-content: flex-end; gap: 0.5rem; }
+    [aria-invalid="true"] { border-color: #c0392b !important; }
+    @media (max-width: 560px) { .entry-row { grid-template-columns: 1fr; } }
+
+    footer {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 1.25rem 2rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.45;
+    }
+
+    .block-label {
+      margin: 0.9rem 0 0.35rem;
+      font-size: 0.8rem;
+      font-weight: 650;
+      color: var(--muted);
+    }
+    .block-label:first-of-type { margin-top: 0; }
+    .phone {
+      margin: 0;
+      background: var(--accent-soft);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 10px 10px 0;
+      padding: 0.75rem 0.9rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .basis {
+      margin: 0.75rem 0 0;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .basis strong { color: var(--ink); font-weight: 600; }
+    .basis a.law {
+      color: var(--accent);
+      text-decoration: underline dotted;
+      text-underline-offset: 2px;
+    }
+    .basis a.law:hover { text-decoration-style: solid; }
+    .check {
+      margin: 0.5rem 0 0;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      background: #fff8e6;
+      border: 1px solid #f0dfb0;
+      border-radius: 8px;
+      padding: 0.5rem 0.7rem;
+      color: #6b4e00;
+    }
+    .btn:focus-visible, summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    @media (max-width: 640px) {
+      .header-inner { align-items: stretch; }
+      .search-wrap { max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div class="platform">
+        <p class="dept">Departement für Bau und Umwelt TG</p>
+        <p class="platform-name">Interne Arbeitshilfe GS</p>
+        <p class="credit">© Built by AMS</p>
+      </div>
+      <div class="ki-box">
+      <span class="ki-badge" id="ki-badge" title="Die Inhalte sind für eine kantonsinterne KI vorbereitet. Der Chatbot wird aktiviert, sobald die KI verfügbar ist.">KI-ready · Chatbot-Funktion bald verfügbar</span>
+      <p class="ki-note" id="ki-note">Konfigurationsblock/Schnittstelle ist vorbereitet</p>
+      </div>
+    </div>
+    <div class="levels-band">
+      <nav class="levels" id="levels" aria-label="Rubriken"></nav>
+    </div>
+    <div class="header-inner">
+      <div class="brand">
+        <h1 id="page-title">FAQ &amp; Auskunftshilfe für Sekretariat GS/RD</h1>
+      </div>
+      <nav class="maincats" id="maincats" aria-label="Hauptkategorien"></nav>
+      <nav class="quick" id="quick" aria-label="Schnellwahl"></nav>
+      <div class="filters" id="filters" role="tablist" aria-label="Kategorien"></div>
+      <div class="search-wrap">
+        <label class="visually-hidden" for="q" style="position:absolute;left:-9999px">Suche</label>
+        <input id="q" type="search" placeholder="Suchen …" title="Suchen, z. B. Rekursfrist, Einsprache, Gerichtsferien" autocomplete="off" />
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="meta-bar" id="meta-bar">
+      <span id="count"></span>
+      <div class="meta-actions">
+        <span class="meta-hint">Text kopieren und im Mail mit Strg+V einfügen · «Download E-Mail» erstellt einen Outlook-Entwurf</span>
+        <button type="button" class="btn primary" id="btn-new-entry">Eintrag hinzufügen – Antragsformular</button>
+      </div>
+    </div>
+    <div class="faq-list" id="list"></div>
+    <div class="empty" id="empty" hidden>Keine Treffer. Anderen Suchbegriff oder Kategorie wählen.</div>
+    <div class="placeholder" id="placeholder" hidden></div>
+    <div class="meta-bar" id="info-bar" hidden>
+      <span>Fehlt etwas? Neue Inhalte, Dokumente oder Bereiche können hier beantragt werden.</span>
+      <div class="meta-actions">
+        <button type="button" class="btn primary" id="btn-new-info">Eintrag hinzufügen – Antragsformular</button>
+      </div>
+    </div>
+    <div class="section-grid" id="sections" hidden></div>
+
+    <dialog class="entry" id="entry-dialog" aria-labelledby="entry-title">
+      <form id="entry-form" novalidate>
+        <div class="entry-head">
+          <h2 id="entry-title">Eintrag hinzufügen – Antragsformular</h2>
+          <button type="button" class="entry-close" id="entry-close" aria-label="Schliessen">×</button>
+        </div>
+        <div class="entry-body">
+          <p class="entry-note">Der Antrag wird an den Backlog gesendet und erst nach der Freigabe manuell in die Plattform übernommen. Bitte keine Personendaten aus konkreten Fällen erfassen.</p>
+          <div class="entry-row">
+            <label>Rubrik
+              <select name="level" id="f-level" required></select>
+            </label>
+            <label>Art des Antrags
+              <select name="request" id="f-request" required>
+                <option value="Neuer Eintrag">Neuer Eintrag</option>
+                <option value="Ergänzung / Korrektur">Ergänzung / Korrektur</option>
+                <option value="Neuer Bereich / neue Kategorie">Neuer Bereich / neue Kategorie</option>
+                <option value="Generelle Verbesserung">Generelle Verbesserung</option>
+              </select>
+            </label>
+          </div>
+          <div class="entry-row">
+            <label><span id="f-main-label">Hauptkategorie</span>
+              <select name="main" id="f-main" required></select>
+            </label>
+            <label id="f-sub-wrap">Unterkategorie <span class="opt">(optional)</span>
+              <input type="text" name="sub" id="f-sub" list="f-sub-list" autocomplete="off" />
+              <datalist id="f-sub-list"></datalist>
+            </label>
+          </div>
+          <label><span id="f-question-label">Frage</span>
+            <input type="text" name="question" id="f-question" required />
+          </label>
+          <div id="f-info-fields" hidden>
+            <label><span id="f-content-label">Inhalt / Beschreibung</span>
+              <textarea name="content" id="f-content"></textarea>
+            </label>
+            <label style="margin-top:0.8rem">Link oder Ablageort <span class="opt">(optional, z. B. SharePoint-Link zum Dokument)</span>
+              <input type="text" name="link" id="f-link" />
+            </label>
+          </div>
+          <div id="f-faq-fields">
+          <fieldset class="answer-kind">
+            <legend>Art der Antwort</legend>
+            <div class="radio-group">
+              <label><input type="radio" name="kind" value="telefon" checked /> nur Telefon</label>
+              <label><input type="radio" name="kind" value="telefon+mail" /> Telefon und E-Mail</label>
+            </div>
+          </fieldset>
+          <label style="margin-top:0.8rem">Antwort am Telefon
+            <textarea name="phone" id="f-phone" required></textarea>
+          </label>
+          <label id="f-mail-wrap" hidden style="margin-top:0.8rem">Antwort per E-Mail
+            <textarea name="mail" id="f-mail"></textarea>
+          </label>
+          <label style="margin-top:0.8rem">Rechtsgrundlage <span class="opt">(optional, z. B. § 45 Abs. 1 VRG)</span>
+            <input type="text" name="basis" id="f-basis" />
+          </label>
+          </div>
+          <label>Interner Hinweis <span class="opt">(optional)</span>
+            <input type="text" name="hint" id="f-hint" />
+          </label>
+          <label>Erfasst von
+            <input type="text" name="author" id="f-author" required autocomplete="name" />
+          </label>
+          <p class="entry-msg" id="entry-msg" role="status" hidden></p>
+          <div class="entry-foot">
+            <button type="button" class="btn" id="entry-cancel">Abbrechen</button>
+            <button type="submit" class="btn primary" id="entry-submit">Antrag senden</button>
+          </div>
+        </div>
+      </form>
+    </dialog>
+  </main>
+
+  <footer>
+    Intern. Vorlagen für das Sekretariat des Rechtsdienstes DBU; keine individuelle Rechtsberatung.
+    Rechtsstand: VRG (RB 170.1), PBG (RB 700) und VGV (RB 631.1) gemäss LexFind, recherchiert und mit Gesetzeswortlaut abgeglichen im Oktober 2026.
+  </footer>
+
+  <script>
+    const GRUSS = "Freundliche Grüsse";
+
+    const FAQS = [
+      /* ───────────── RECHTSAUSKUNFT ───────────── */
+      {
+        id: "auskunft-gemeinde",
+        category: "Rechtsauskunft",
+        title: "Gemeinde wünscht eine Rechtsauskunft (Telefon / E-Mail)",
+        hint: "Gemeinden erhalten am Morgen telefonisch Auskunft – sofern die Leiterin Rechtsdienst oder ihr Stellvertreter verfügbar ist. Keine schriftlichen Rechtsauskünfte per E-Mail. Sind beide nicht erreichbar: kein Rückruf vereinbaren, sondern höflich bitten, es später oder am nächsten Tag noch einmal zu versuchen.",
+        phone: "Rechtsauskünfte für Gemeinden gibt es am Morgen telefonisch durch die Leiterin des Rechtsdienstes oder ihren Stellvertreter. Ich schaue, ob jemand frei ist. Falls gerade niemand erreichbar ist, dürfen wir Sie bitten, es später oder am nächsten Morgen noch einmal zu versuchen. (Bei Bedarf: Die Auskunft beschränkt sich auf allgemeine Rechtsfragen.)",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nDer Rechtsdienst erteilt den Gemeinden Rechtsauskünfte telefonisch am Morgen, sofern die Leiterin des Rechtsdienstes oder ihr Stellvertreter verfügbar ist. Schriftliche Rechtsauskünfte per E-Mail geben wir nicht ab.\n\nBitte rufen Sie uns an einem Morgen an. Die Rechtsauskunft beschränkt sich auf allgemeine Rechtsfragen. Beurteilungen von konkreten Sachverhalten dürfen wir nicht telefonisch vornehmen.\n\nGRUSS",
+        basis: "Interne Regelung Rechtsdienst DBU.",
+        check: ""
+      },
+      {
+        id: "auskunft-privat",
+        category: "Rechtsauskunft",
+        title: "Privatperson wünscht eine Rechtsauskunft",
+        hint: "Keine Rechtsauskunft an Private – das DBU ist Rekursinstanz und könnte später über denselben Fall entscheiden (Befangenheit). Freundlich ablehnen und weiterverweisen.",
+        phone: "Leider dürfen wir Privatpersonen keine Rechtsauskunft geben. Das Departement entscheidet möglicherweise später als Rekursinstanz über Ihren Fall und muss deshalb unbefangen bleiben. Wenden Sie sich bitte an Ihre Gemeinde oder an eine Anwältin bzw. einen Anwalt. Eine Anwaltssuche finden Sie beim Thurgauischen Anwaltsverband unter www.tav.ch.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nDas Departement für Bau und Umwelt beurteilt als Rekursinstanz unter anderem Rekurse gegen Entscheide der Gemeinden (§ 43 Ziff. 3 VRG). Damit es in einem allfälligen späteren Verfahren unbefangen entscheiden kann, darf der Rechtsdienst Privatpersonen keine Rechtsauskünfte erteilen und keine Einschätzungen zu konkreten Fällen abgeben.\n\nFür Fragen zu einem Baugesuch wenden Sie sich bitte an Ihre Gemeinde. Für eine rechtliche Beratung empfehlen wir Ihnen, eine Anwältin oder einen Anwalt beizuziehen. Eine Anwaltssuche bietet der Thurgauische Anwaltsverband (TAV) unter www.tav.ch an.\n\nWir danken Ihnen für Ihr Verständnis.\n\nGRUSS",
+        basis: "Art. 29 Abs. 1 BV (Unbefangenheit als Teilgehalt, auch bei Verwaltungsbehörden: BGE 140 I 326 E. 5); § 7 Abs. 1 Ziff. 3 und 4 VRG (Ausstand); § 43 Ziff. 3 VRG.",
+        check: ""
+      },
+      {
+        id: "auskunft-anwalt",
+        category: "Rechtsauskunft",
+        title: "Anwältin / Anwalt fragt nach einer Einschätzung zu einem Fall",
+        hint: "Gleich wie bei Privatpersonen: keine materielle Einschätzung. Verfahrensfragen in einem hängigen Rekurs an die zuständige Sachbearbeitung weiterleiten.",
+        phone: "Zu materiellen Fragen können wir keine Einschätzung abgeben, da das Departement als Rekursinstanz entscheidet. Bei einem hängigen Verfahren leite ich Ihr Anliegen gerne an die zuständige Person weiter.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nDa das Departement für Bau und Umwelt als Rekursinstanz entscheidet, kann der Rechtsdienst ausserhalb eines Verfahrens keine Einschätzungen zu konkreten Fällen abgeben.\n\nBetrifft Ihre Anfrage ein hängiges Rekursverfahren, teilen Sie uns bitte die Verfahrensnummer mit. Wir leiten Ihr Anliegen an die zuständige Person weiter.\n\nGRUSS",
+        basis: "Art. 29 Abs. 1 BV; BGE 140 I 326 E. 5 und 6; § 7 Abs. 1 Ziff. 3 und 4 VRG.",
+        check: ""
+      },
+
+      /* ───────────── FRISTEN ───────────── */
+      {
+        id: "rekursfrist",
+        category: "Fristen",
+        title: "Wie lange dauert die Rekursfrist?",
+        hint: "Allgemeine Auskunft zur Frist ist erlaubt. Kein konkretes Fristende berechnen – auf die Rechtsmittelbelehrung im Entscheid verweisen.",
+        phone: "Die Rekursfrist beträgt 30 Tage seit der Eröffnung, also der schriftlichen Zustellung des Entscheids. Der Tag der Eröffnung zählt nicht. Ist der letzte Tag ein Samstag oder ein öffentlicher Ruhetag, endet die Frist am folgenden Werktag. Beim Rekurs an das Departement gelten keine Gerichtsferien.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nDie Rekursschrift ist «innert 30 Tagen seit der Eröffnung des angefochtenen Entscheides» einzureichen (§ 45 Abs. 1 VRG). «Die Rechtsmittelfrist läuft in jedem Fall von der schriftlichen Zustellung an» (§ 20 Abs. 3 VRG).\n\nFür die Berechnung gilt § 24 VRG:\n- «Der Tag, an dem ein Entscheid eröffnet wird, zählt bei der Fristberechnung nicht.» (Abs. 1)\n- «Fristen enden am letzten Tag um 24.00 Uhr. Ist der letzte Tag der Frist ein Samstag oder ein öffentlicher Ruhetag, endet sie am folgenden Werktag.» (Abs. 2)\n\nIm Rekursverfahren vor dem Departement für Bau und Umwelt gelten keine Gerichtsferien. Die Frist läuft deshalb auch über Ostern, im Sommer und über den Jahreswechsel weiter.\n\nMassgebend ist die Rechtsmittelbelehrung im Entscheid.\n\nGRUSS",
+        basis: "§ 45 Abs. 1 VRG (30 Tage, in Kraft seit 1.1.2022); § 20 Abs. 3 VRG; § 24 Abs. 1 und 2 VRG. Keine Gerichtsferien vor dem Departement: § 63 VRG gilt nur für das Verwaltungsgericht; TVR 2003 Nr. 45, E. 2.",
+        check: ""
+      },
+      {
+        id: "frist-gewahrt",
+        category: "Fristen",
+        title: "Wann ist die Rekursfrist eingehalten?",
+        hint: "Wortlaut § 24 Abs. 3 VRG: Übergabe an das DBU, an die Schweizerische Post oder an eine schweizerische Vertretung im Ausland vor Fristablauf. Ein Eintreffen beim DBU innert Frist ist nicht nötig.",
+        phone: "Der Rekurs muss vor Ablauf der Frist uns, der Schweizerischen Post oder einer schweizerischen Vertretung im Ausland übergeben werden. Die Frist endet am letzten Tag um 24.00 Uhr. Der Rekurs muss unterzeichnet sein.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nGemäss § 24 Abs. 3 VRG gilt: «Zur Wahrung einer Frist muss die betreffende Handlung vor Ablauf der Frist vorgenommen werden. Schriftliche Eingaben müssen vor Ablauf der Frist dem Adressaten, der schweizerischen Post oder einer schweizerischen diplomatischen oder konsularischen Vertretung übergeben werden.»\n\n«Fristen enden am letzten Tag um 24.00 Uhr.» (§ 24 Abs. 2 VRG)\n\nDer Rekurs ist «unterzeichnet» einzureichen (§ 45 Abs. 1 VRG).\n\nGRUSS",
+        basis: "§ 24 Abs. 2 und 3 VRG; § 45 Abs. 1 VRG.",
+        check: ""
+      },
+      {
+        id: "frist-erstreckung",
+        category: "Fristen",
+        title: "Kann die Rekursfrist verlängert werden?",
+        hint: "Gesetzliche Fristen: nein. Vom DBU angesetzte Fristen (z. B. Vernehmlassung): ja, mit Gesuch vor Ablauf.",
+        phone: "Nein. Gesetzlich festgelegte Fristen wie die Rekursfrist können nicht erstreckt werden. Fristen, die wir im Verfahren ansetzen, können aus zureichenden Gründen erstreckt werden, wenn Sie vor Ablauf darum ersuchen.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nDie Rekursfrist ist gesetzlich festgelegt. Dazu bestimmt § 25 VRG:\n- «Gesetzlich festgelegte Fristen können nicht erstreckt werden.» (Abs. 1)\n- «Behördlich angesetzte Fristen können aus zureichenden Gründen erstreckt werden, wenn vor Ablauf der Frist darum nachgesucht wird.» (Abs. 2)\n\nZur Berechnung der Fristen gilt § 24 VRG.\n\nGRUSS",
+        basis: "§ 25 Abs. 1 und 2 VRG; § 24 VRG.",
+        check: ""
+      },
+      {
+        id: "frist-verpasst",
+        category: "Fristen",
+        title: "Frist verpasst – was nun?",
+        hint: "Wiederherstellung nur ohne Verschulden; die Praxis ist streng. Keine Aussicht auf Erfolg versprechen.",
+        phone: "Eine versäumte Frist kann nur wiederhergestellt werden, wenn Sie oder Ihre Vertretung kein Verschulden trifft. Das begründete Gesuch ist innert 14 Tagen seit Wegfall des Hinderungsgrundes einzureichen.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Nachricht.\n\nGemäss § 26 VRG gilt: «Eine versäumte Frist kann auf begründetes Gesuch hin wiederhergestellt werden, wenn den Säumigen oder seinen Vertreter kein Verschulden trifft. Solche Gesuche sind innert 14 Tagen seit Wegfall des Grundes einzureichen, der die Einhaltung der Frist verhindert hat.»\n\nOb die Voraussetzungen erfüllt sind, wird im Verfahren geprüft. Eine Zusicherung können wir nicht abgeben.\n\nGRUSS",
+        basis: "§ 26 VRG; restriktive Praxis: TVR 2003 Nr. 45 (Entscheid des Regierungsrates vom 14.1.2003), E. 2; Irrtum über Gerichtsferien ist kein Wiederherstellungsgrund: TVR 2017 Nr. 13.",
+        check: ""
+      },
+      {
+        id: "zustellung",
+        category: "Fristen",
+        title: "Entscheid nicht abgeholt / A-Post Plus – wann beginnt die Frist?",
+        hint: "Nur den Grundsatz erklären, keine Einzelfallberechnung. Die Zustellfiktion steht nicht im VRG, sondern ist ständige Rechtsprechung.",
+        phone: "Wird ein eingeschriebener Entscheid nicht abgeholt, gilt er am letzten Tag der siebentägigen Abholfrist als zugestellt. Bei A-Post Plus gilt er bereits mit dem Einwurf in den Briefkasten oder das Postfach als zugestellt – auch an einem Samstag.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\n«Die Rechtsmittelfrist läuft in jedem Fall von der schriftlichen Zustellung an» (§ 20 Abs. 3 VRG). Nach der Rechtsprechung gilt:\n- Eine eingeschriebene Sendung, die nicht abgeholt wird, gilt am letzten Tag der siebentägigen Abholfrist als zugestellt.\n- Eine Sendung mit A-Post Plus gilt bereits mit dem Einlegen in den Briefkasten oder das Postfach als zugestellt, auch wenn dies an einem Samstag geschieht.\n\n«Der Tag, an dem ein Entscheid eröffnet wird, zählt bei der Fristberechnung nicht» (§ 24 Abs. 1 VRG).\n\nGRUSS",
+        basis: "§ 20 Abs. 3 VRG; § 24 Abs. 1 VRG; TVR 2014 Nr. 7 (Verwaltungsgericht, VG.2014.31 vom 25.6.2014), E. 2.6, bestätigt durch BGer 8C_573/2014; BGer 2C_430/2009.",
+        check: ""
+      },
+      {
+        id: "frist-heute",
+        category: "Fristen",
+        title: "Dringend: Frist läuft heute ab",
+        hint: "Keine Fristberechnung durch das Sekretariat. Zuerst versuchen, jemanden aus dem Rechtsdienst zu erreichen. Ist niemand erreichbar: empfehlen, vorsorglich eine unterzeichnete Eingabe noch vor Fristablauf der Post zu übergeben (§ 24 Abs. 3 VRG). Keine schriftliche Rückmeldung.",
+        phone: "Ich versuche, jemanden aus dem Rechtsdienst für Sie zu erreichen. (Falls niemand erreichbar ist:) Leider kann ich Ihnen das Fristende nicht verbindlich bestätigen. Wir empfehlen Ihnen, vorsorglich eine unterzeichnete Eingabe vor Ablauf der Frist der Schweizerischen Post zu übergeben.",
+        answer: "",
+        basis: "§ 24 Abs. 2 und 3 VRG; § 45 Abs. 1 VRG.",
+        check: ""
+      },
+
+      /* ───────────── GERICHTSFERIEN ───────────── */
+      {
+        id: "ferien-dbu",
+        category: "Gerichtsferien",
+        title: "Gibt es beim Rekurs an das DBU Gerichtsferien?",
+        hint: "Nein. Häufiger Irrtum – klar kommunizieren.",
+        phone: "Nein. Im Rekursverfahren vor dem Departement gibt es keine Gerichtsferien. Die Frist läuft auch an Ostern, im Sommer und über den Jahreswechsel weiter.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nIm Rekursverfahren vor dem Departement für Bau und Umwelt gibt es keine Gerichtsferien. Die Bestimmung über die Gerichtsferien (§ 63 VRG) gilt nur für das Verfahren vor dem Verwaltungsgericht. Die Rekursfrist läuft deshalb auch während Ostern, im Sommer und über den Jahreswechsel ohne Unterbruch.\n\nZur Berechnung der Frist gilt § 24 VRG.\n\nGRUSS",
+        basis: "§ 53 VRG (für das Rekursverfahren gelten «im übrigen» die allgemeinen Verfahrensvorschriften); § 63 VRG (Abschnitt Beschwerde an das Verwaltungsgericht); TVR 2003 Nr. 45, E. 2 (im Rekursverfahren ist «seit jeher» keine Gerichtsferienregelung vorgesehen).",
+        check: ""
+      },
+      {
+        id: "ferien-vg",
+        category: "Gerichtsferien",
+        title: "Gerichtsferien beim Verwaltungsgericht Thurgau – wann und wofür?",
+        hint: "Nur Orientierung. Bei Baubewilligungen gelten auch vor Verwaltungsgericht keine Gerichtsferien.",
+        phone: "Beim Verwaltungsgericht dauern die Gerichtsferien vom 7. Tag vor bis und mit dem 7. Tag nach Ostern, vom 15. Juli bis und mit 15. August und vom 18. Dezember bis und mit 2. Januar. Sie gelten aber nicht in Verfahren über Baubewilligungen.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nFür das Verfahren vor dem Verwaltungsgericht bestimmt § 63 VRG:\n\n«Die Gerichtsferien dauern vom siebten Tag vor Ostern bis und mit dem siebten Tag nach Ostern, vom 15. Juli bis und mit dem 15. August und vom 18. Dezember bis und mit dem 2. Januar.» (Abs. 1)\n\n«Während der Gerichtsferien stehen gesetzlich oder richterlich nach Tagen bestimmte Fristen still.» (Abs. 2)\n\n«Die Gerichtsferien gelten nicht in Verfahren betreffend aufschiebende Wirkung und andere vorsorgliche Massnahmen, in Verfahren betreffend Erteilung oder Verweigerung einer Bewilligung für Bauten oder Anlagen, im Submissions-, im Steuer-, im Zwangsvollstreckungsverfahren sowie im Bereich der ausländerrechtlichen Zwangsmassnahmen. Fehlt in der Rechtsmittelbelehrung der Hinweis auf diese Bestimmung, gelten die Gerichtsferien.» (Abs. 4)\n\nIm Rekursverfahren vor dem Departement gelten keine Gerichtsferien.\n\nGRUSS",
+        basis: "§ 63 Abs. 1, 2 und 4 VRG; Begriff «Bewilligung für Anlagen» umfasst auch Betriebsbewilligungen: TVR 2018 Nr. 8.",
+        check: ""
+      },
+
+      /* ───────────── REKURSVERFAHREN ───────────── */
+      {
+        id: "rekurs-form",
+        category: "Rekursverfahren",
+        title: "Was muss ein Rekurs enthalten?",
+        hint: "Formale Anforderungen dürfen erklärt werden – keine inhaltliche Hilfe beim Verfassen.",
+        phone: "Der Rekurs muss unterzeichnet sein, einen Antrag und eine Begründung enthalten und die Beweismittel aufführen. Der angefochtene Entscheid ist beizulegen, und zwar je ein Exemplar für uns und für die Beteiligten.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nGemäss § 45 Abs. 1 VRG gilt: «Die Rekursschrift ist innert 30 Tagen seit der Eröffnung des angefochtenen Entscheides unter Beilage desselben bei der Rekursinstanz unterzeichnet in je einem Exemplar für die Rekursinstanz und die Beteiligten einzureichen. Der Rekurs muss einen Antrag und eine Begründung enthalten sowie die Beweismittel aufführen. Akten sind nummeriert und mit einem Aktenverzeichnis einzureichen.»\n\nBeim Verfassen des Rekurses können wir Sie nicht unterstützen.\n\nGRUSS",
+        basis: "§ 45 Abs. 1 und 2 VRG; Nachfrist bei Mängeln: § 46 Abs. 1 VRG.",
+        check: ""
+      },
+      {
+        id: "rekurs-elektronisch",
+        category: "Rekursverfahren",
+        title: "Kann ein Rekurs elektronisch (z. B. per E-Mail) eingereicht werden?",
+        hint: "Derzeit ist beim DBU keine elektronische Eingabe möglich. Rekurs auf Papier, unterzeichnet, per Post oder am Schalter. Eine gewöhnliche E-Mail wahrt die Frist nicht.",
+        phone: "Nein, derzeit ist beim Departement keine elektronische Eingabe möglich. Eine E-Mail genügt nicht. Der Rekurs ist auf Papier, unterzeichnet, vor Ablauf der Frist bei uns einzureichen oder der Schweizerischen Post zu übergeben.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nBeim Departement für Bau und Umwelt ist derzeit keine elektronische Eingabe möglich. Eine Einreichung per E-Mail genügt nicht und wahrt die Rekursfrist nicht.\n\nDie Rekursschrift ist «unterzeichnet» einzureichen (§ 45 Abs. 1 VRG). Bitte reichen Sie den Rekurs deshalb auf Papier ein. Die Frist ist gewahrt, wenn die Eingabe «vor Ablauf der Frist dem Adressaten, der schweizerischen Post oder einer schweizerischen diplomatischen oder konsularischen Vertretung übergeben» wird (§ 24 Abs. 3 VRG).\n\nGRUSS",
+        basis: "§ 45 Abs. 1 VRG; § 24 Abs. 3 und 5 VRG; § 20b VRG; Verordnung des Regierungsrates betreffend die elektronische Übermittlung (VeÜ, RB 170.15): elektronische Eingaben nur an Behörden, die im Verzeichnis der Staatskanzlei aufgeführt sind (§§ 5, 6 und 9 VeÜ).",
+        check: ""
+      },
+      {
+        id: "rekurs-legitimation",
+        category: "Rekursverfahren",
+        title: "Wer darf Rekurs gegen eine Baubewilligung erheben?",
+        hint: "Wichtig: Wer keine Einsprache erhoben hat, kann in der Regel keinen Rekurs mehr erheben (formelle Beschwer).",
+        phone: "Rekurs erheben kann, wer durch den Entscheid berührt ist und ein schutzwürdiges Interesse hat. Bei Baubewilligungen gilt zudem: Wer sich nicht mit einer Einsprache am Verfahren bei der Gemeinde beteiligt hat, kann in der Regel keinen Rekurs mehr erheben.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nGemäss § 44 VRG ist zum Rekurs berechtigt:\n«1. wer durch einen Entscheid berührt ist und ein schutzwürdiges Interesse an dessen Aufhebung oder Änderung hat;\n2. jede durch ein Gesetz dazu ermächtigte Person, Organisation oder Behörde.»\n\nNach der Rechtsprechung muss zudem am Verfahren vor der Vorinstanz teilgenommen haben, wer Rekurs erheben will. Bei Baubewilligungen heisst das: Wer keine Einsprache bei der Gemeinde erhoben hat, kann in der Regel keinen Rekurs mehr erheben. Ausnahmen gelten etwa, wenn jemand ohne eigenes Verschulden nicht am Verfahren teilnehmen konnte.\n\nOb diese Voraussetzungen im Einzelfall erfüllt sind, wird im Verfahren geprüft.\n\nGRUSS",
+        basis: "§ 44 VRG; formelle Beschwer: VG.2024.161 vom 26.11.2024, E. 4.4; TVR 2017 Nr. 5.",
+        check: ""
+      },
+      {
+        id: "aufschiebende-wirkung",
+        category: "Rekursverfahren",
+        title: "Darf trotz Rekurs gebaut werden? (aufschiebende Wirkung)",
+        hint: "Klare Antwort: Nein, grundsätzlich darf nicht gebaut werden, wenn die Baubewilligung angefochten ist. Konkrete Fälle (Baustelle läuft trotzdem) an die Gemeinde bzw. die zuständige Person verweisen.",
+        phone: "Nein. Grundsätzlich darf man nicht bauen, wenn die Baubewilligung angefochten worden ist. Der Rekurs hat aufschiebende Wirkung, ausser die Vorinstanz hat aus besonderen Gründen die Vollstreckbarkeit angeordnet. Bei einem rechtswidrigen Zustand ist die Gemeindebehörde zuständig.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nNein. Grundsätzlich darf nicht gebaut werden, wenn die Baubewilligung angefochten worden ist.\n\nGemäss § 48 VRG gilt:\n«Der Rekurs hat aufschiebende Wirkung, sofern nicht die Vorinstanz aus besonderen Gründen die Vollstreckbarkeit anordnet.» (Abs. 1)\n«Die Rekursinstanz oder ihr Vorsitzender kann die von der Vorinstanz entzogene aufschiebende Wirkung wiederherstellen oder einem Rekurs die aufschiebende Wirkung entziehen.» (Abs. 3)\n\nWenn Sie der Ansicht sind, dass rechtswidrig gebaut wird, wenden Sie sich bitte an die Gemeindebehörde. Sie trifft die zur Herstellung des gesetzmässigen Zustandes erforderlichen Massnahmen (§ 114 PBG).\n\nGRUSS",
+        basis: "§ 48 Abs. 1 und 3 VRG; § 114 PBG.",
+        check: ""
+      },
+      {
+        id: "verfahrensstand",
+        category: "Rekursverfahren",
+        title: "Wie ist der Stand des Verfahrens? Wann kommt der Entscheid?",
+        hint: "Auskunft nur an Verfahrensbeteiligte (Identität prüfen). Keine Prognose zu Dauer oder Ausgang.",
+        phone: "Auskunft zum Verfahrensstand kann ich nur Verfahrensbeteiligten geben. Ein genaues Datum für den Entscheid kann ich nicht nennen, und zum möglichen Ausgang äussern wir uns nicht.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Nachricht.\n\nAuskünfte zum Stand eines Rekursverfahrens geben wir nur den Verfahrensbeteiligten. Bitte geben Sie uns die Verfahrensnummer an.\n\nEin verbindliches Datum für den Entscheid können wir nicht nennen. Zum möglichen Ausgang des Verfahrens äussern wir uns nicht.\n\nGRUSS",
+        basis: "Art. 29 Abs. 1 BV (Unbefangenheit, Beurteilung innert angemessener Frist); Amtsgeheimnis.",
+        check: ""
+      },
+      {
+        id: "rueckzug",
+        category: "Rekursverfahren",
+        title: "Rekurs zurückziehen",
+        hint: "Rückzug schriftlich und unterzeichnet verlangen. Fragen zu den Kosten des Rückzugs: Prüfung durch die zuständige juristische Mitarbeiterin oder den zuständigen juristischen Mitarbeiter; den Richtwert (ca. CHF 300) nur mündlich nennen, nicht per E-Mail. * Unverbindlicher Richtwert, vorbehalten bleibt besonders grosser Aufwand.",
+        phone: "Ein Rückzug ist möglich. Senden Sie uns bitte eine kurze, unterzeichnete Erklärung mit der Verfahrensnummer. Das Verfahren wird dann abgeschrieben. (Bei Frage nach den Kosten:) Die Kosten muss die zuständige juristische Mitarbeiterin oder der zuständige juristische Mitarbeiter prüfen. In aller Regel ist ein Rückzug aber günstig, ca. CHF 300.*",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Nachricht.\n\nFür einen Rückzug senden Sie uns bitte eine kurze schriftliche, unterzeichnete Erklärung mit der Verfahrensnummer.\n\nGemäss § 52 Abs. 1 VRG gilt: «Wird der Rekurs durch Vergleich, Rückzug oder Anerkennung erledigt oder gegenstandslos, wird er durch den Vorsitzenden am Protokoll abgeschrieben.» Ist ein Departement Rekursinstanz, kann die Abschreibung auch durch die ermächtigte Person erfolgen (§ 52 Abs. 2 VRG).\n\nÜber allfällige Kosten wird im Abschreibungsentscheid befunden.\n\nGRUSS",
+        basis: "§ 52 Abs. 1 und 2 VRG.",
+        check: ""
+      },
+      {
+        id: "weiterzug",
+        category: "Rekursverfahren",
+        title: "Nicht einverstanden mit dem Rekursentscheid – wie weiter?",
+        hint: "Nur auf die Rechtsmittelbelehrung verweisen. Das Departement darf einen bereits zugestellten Entscheid nicht mehr kommentieren. Am Telefon anbieten, an die zuständige juristische Mitarbeiterin oder den zuständigen juristischen Mitarbeiter durchzustellen.",
+        phone: "Das Departement darf einen bereits zugestellten Entscheid nicht mehr kommentieren. Gegen den Rekursentscheid kann innert 30 Tagen seit Eröffnung Beschwerde beim Verwaltungsgericht des Kantons Thurgau erhoben werden; massgebend ist die Rechtsmittelbelehrung im Entscheid. Gerne stelle ich Sie an die zuständige juristische Mitarbeiterin oder den zuständigen juristischen Mitarbeiter durch.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Nachricht.\n\nBitte haben Sie Verständnis, dass das Departement einen bereits zugestellten Entscheid nicht weiter kommentieren kann.\n\nEntscheide der Departemente können mit Beschwerde beim Verwaltungsgericht angefochten werden (§ 54 Abs. 1 Ziff. 5 VRG). «Die Beschwerdeschrift ist innert 30 Tagen seit der Eröffnung des angefochtenen Entscheides unter Beilage desselben bei der Beschwerdeinstanz unterzeichnet in je einem Exemplar für die Beschwerdeinstanz und die Beteiligten einzureichen.» (§ 57 Abs. 1 VRG)\n\nDie Beschwerde ist beim Verwaltungsgericht einzureichen, nicht beim Departement. In Verfahren betreffend Bewilligungen für Bauten oder Anlagen gelten keine Gerichtsferien (§ 63 Abs. 4 VRG). Massgebend ist die Rechtsmittelbelehrung im Entscheid.\n\nGRUSS",
+        basis: "§ 54 Abs. 1 Ziff. 5 VRG; § 57 Abs. 1 VRG (30 Tage, in Kraft seit 1.1.2022); § 63 Abs. 4 VRG; Fristberechnung § 24 VRG.",
+        check: ""
+      },
+
+      /* ───────────── RECHTSKRAFT ───────────── */
+      {
+        id: "rechtskraft",
+        category: "Rechtskraftbescheinigung",
+        title: "Rechtskraftbescheinigung für einen Entscheid (z. B. Baubewilligung)",
+        hint: "Das DBU bescheinigt die Rechtskraft, weil bei ihm als Rekursinstanz ein allfälliger Rekurs eingeht. Bescheinigt wird in der Regel frühestens 40 Tage nach Zustellung: 30 Tage Rekursfrist (§ 45 Abs. 1 VRG) plus Reserve für Rekurse, die am letzten Tag der Post übergeben werden (§ 24 Abs. 3 VRG). Vor dem Ausstellen prüfen, dass kein Rekurs eingegangen ist.",
+        phone: "Die Rechtskraft bescheinigt das Departement für Bau und Umwelt. Bitte senden Sie uns den Entscheid im Original und einen Nachweis des Zustelldatums. Wir stellen die Bescheinigung in der Regel aus, wenn seit der Zustellung 40 Tage vergangen sind und kein Rekurs eingegangen ist.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nDas Departement für Bau und Umwelt bescheinigt die Rechtskraft eines Entscheids, sofern dieser in Rechtskraft erwachsen ist, also innert der Rekursfrist kein Rekurs erhoben wurde.\n\nDie Rekursfrist beträgt 30 Tage seit der Eröffnung des Entscheids (§ 45 Abs. 1 VRG). Da ein Rekurs fristgerecht ist, wenn er am letzten Tag der Frist der Post übergeben wird (§ 24 Abs. 3 VRG), stellen wir die Bescheinigung in der Regel erst aus, wenn seit der Zustellung des Entscheids 40 Tage vergangen sind.\n\nBitte senden Sie uns dazu:\n- den Entscheid im Original\n- einen Nachweis des Zustelldatums (z. B. Sendungsverfolgung der Post oder Empfangsbestätigung)\n\nNach der Prüfung erhalten Sie das Original mit der Rechtskraftbescheinigung zurück.\n\nGRUSS",
+        basis: "Praxis DBU. Herleitung: § 43 Ziff. 3 VRG (DBU als Rekursinstanz), § 45 Abs. 1 VRG (Rekursfrist 30 Tage), § 20 Abs. 3 VRG (Fristbeginn mit schriftlicher Zustellung), § 24 Abs. 3 VRG (Postaufgabe am letzten Tag genügt).",
+        check: ""
+      },
+
+      /* ───────────── BAU & PLANUNG ───────────── */
+      {
+        id: "einsprache-baugesuch",
+        category: "Bau & Planung",
+        title: "Einsprache gegen ein Baugesuch – wo und bis wann?",
+        hint: "Gilt nur für Baugesuche (Baubewilligungsverfahren nach PBG) – nicht für kantonale Strassenprojekte oder ähnliche Projekte mit eigenem Auflage- und Einspracheverfahren. Einsprachen gegen Baugesuche gehen an die Gemeinde, nicht an das DBU.",
+        phone: "Handelt es sich um ein Baugesuch? Dann erheben Sie die Einsprache bei der Gemeindebehörde, nicht beim Departement. Das Baugesuch liegt 20 Tage öffentlich auf; während dieser Auflagefrist ist die Einsprache schriftlich und begründet zu erheben. Für Strassenprojekte des Kantons und ähnliche Vorhaben gelten eigene Verfahren – massgebend ist die jeweilige Publikation.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nDie folgenden Angaben gelten für Baugesuche im Baubewilligungsverfahren. Für kantonale Strassenprojekte und ähnliche Vorhaben gelten eigene Auflage- und Einspracheverfahren; massgebend ist die jeweilige Publikation.\n\n«Das Baugesuch ist während 20 Tagen öffentlich aufzulegen.» (§ 102 Abs. 1 PBG)\n\n«Wer vom Bauvorhaben berührt ist und ein schutzwürdiges Interesse hat, kann während der Auflagefrist bei der Gemeindebehörde schriftlich und begründet Einsprache erheben.» (§ 103 Abs. 1 PBG)\n\nZuständig ist die Gemeinde, nicht das Departement. Wichtig: Ohne Einsprache ist ein späterer Rekurs in der Regel nicht mehr möglich.\n\nGRUSS",
+        basis: "§ 102 Abs. 1 PBG; § 103 Abs. 1 PBG; formelle Beschwer: VG.2024.161, E. 4.4. Abgrenzung: Strassenprojekte nach dem Gesetz über Strassen und Wege (RB 725.1).",
+        check: ""
+      },
+      {
+        id: "einsprache-nutzungsplan",
+        category: "Bau & Planung",
+        title: "Einsprache gegen Zonenplan, Baureglement oder Gestaltungsplan",
+        hint: "Einsprache bei der Gemeindebehörde. Ausnahme: Trifft das Departement anstelle der Gemeinde Planungsmassnahmen, ist die Einsprache beim Departement zu erheben.",
+        phone: "Neue und abgeänderte Nutzungspläne, also Zonenplan, Baureglement oder Gestaltungsplan, liegen 20 Tage öffentlich auf. Einsprache erheben Sie während der Auflagefrist bei der Gemeindebehörde.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\n«Neue und abgeänderte Rahmennutzungspläne, Sondernutzungspläne und Planungszonen sowie die dazugehörigen Vorschriften sind während 20 Tagen öffentlich aufzulegen.» (§ 29 Abs. 1 PBG)\n\n«Wer durch Pläne und zugehörige Vorschriften oder durch Planungszonen berührt ist und ein schutzwürdiges Interesse hat, kann während der Auflagefrist bei der Gemeindebehörde Einsprache erheben.» (§ 31 Abs. 1 PBG) «Die Gemeindebehörde entscheidet über die Einsprache.» (§ 31 Abs. 2 PBG)\n\nZu den Rahmennutzungsplänen gehören Zonenplan und Baureglement, zu den Sondernutzungsplänen namentlich der Gestaltungsplan.\n\nGRUSS",
+        basis: "§ 29 Abs. 1 PBG; § 31 Abs. 1–3 PBG; Systematik PBG: §§ 17 f. (Zonenplan, Baureglement), § 23 (Gestaltungsplan).",
+        check: ""
+      },
+      {
+        id: "zustaendigkeit",
+        category: "Bau & Planung",
+        title: "Wer ist zuständig? (Gemeinde – DBU – Verwaltungsgericht)",
+        hint: "Einfache Übersicht für Anrufende, die nicht wissen, wo sie sich melden sollen.",
+        phone: "Baugesuch und Einsprache: Gemeinde. Rekurs gegen den Entscheid der Gemeinde: Departement für Bau und Umwelt. Beschwerde gegen den Rekursentscheid: Verwaltungsgericht des Kantons Thurgau.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nIm Baubewilligungsverfahren ist die Zuständigkeit wie folgt:\n1. Baugesuch und Einsprache: Gemeindebehörde (§ 103 PBG)\n2. Rekurs gegen den Entscheid der Gemeinde: Departement für Bau und Umwelt (§ 43 Ziff. 3 VRG)\n3. Beschwerde gegen den Rekursentscheid: Verwaltungsgericht des Kantons Thurgau (§ 54 Abs. 1 Ziff. 5 VRG)\n\nMassgebend ist jeweils die Rechtsmittelbelehrung im Entscheid.\n\nGRUSS",
+        basis: "§ 103 PBG; § 43 Ziff. 3 VRG; § 54 Abs. 1 Ziff. 5 VRG.",
+        check: ""
+      },
+
+      /* ───────────── AKTEN & KOSTEN ───────────── */
+      {
+        id: "akteneinsicht",
+        category: "Akten & Kosten",
+        title: "Akteneinsicht im Rekursverfahren",
+        hint: "Nur Verfahrensbeteiligte. Anwältinnen und Anwälten sowie Behörden können Akten zugestellt werden; übrige Beteiligte sehen sie nach Absprache bei uns ein.",
+        phone: "Akteneinsicht erhalten die Verfahrensbeteiligten. Bitte stellen Sie ein kurzes schriftliches Gesuch mit der Verfahrensnummer.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\n«Die Beteiligten haben Anspruch auf Akteneinsicht. Behörden sowie den nach dem BGFA zugelassenen Anwälten können die Akten zugestellt werden.» (§ 14 Abs. 1 VRG)\n\n«Die Einsichtnahme in ein Aktenstück kann verweigert werden, soweit es ausschliesslich verwaltungsinternem Gebrauch dient oder wichtige öffentliche oder schutzwürdige private Interessen entgegenstehen.» (§ 14 Abs. 2 VRG)\n\nBitte senden Sie uns ein kurzes schriftliches Gesuch mit der Verfahrensnummer. Wir vereinbaren dann einen Termin für die Einsichtnahme.\n\nGRUSS",
+        basis: "§ 14 Abs. 1–3 VRG.",
+        check: ""
+      },
+      {
+        id: "kosten",
+        category: "Akten & Kosten",
+        title: "Was kostet ein Rekurs?",
+        hint: "Richtwerte aus der Praxis des Rechtsdienstes – immer als «in der Regel» kommunizieren, nie als Zusage.",
+        phone: "Die amtlichen Kosten beim Departement betragen in der Regel zwischen 1'700 und 2'500 Franken, bei besonders grossem Aufwand auch mehr. In der Regel zahlt, wer unterliegt. Ist die Gegenpartei anwaltlich vertreten, kann bei Unterliegen eine Parteientschädigung von etwa 1'000 bis 4'000 Franken dazukommen, im Einzelfall auch mehr.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\n«In streitigen Verfahren trägt in der Regel der Unterliegende die Kosten. Unterliegt ein Beteiligter nur teilweise, wird ihm ein entsprechender Teil der Kosten auferlegt.» (§ 77 VRG) Es können zwei Arten von Kosten anfallen:\n\n1. Amtliche Kosten: Die Verfahrensgebühr eines Departements beträgt Fr. 50 bis Fr. 2'500 (§ 9 Abs. 1 Ziff. 2 VGV). Sie bemisst sich «nach dem Aufwand und der Bedeutung der Sache»; «bei besonders grossem Aufwand kann der Rahmen überschritten werden» (§ 5 VGV). In der Praxis liegen die amtlichen Kosten in der Regel zwischen Fr. 1'700 und Fr. 2'500.\n\n2. Ausseramtliche Kosten (Parteientschädigung): «Stehen sich in einem Rekursverfahren Privatparteien gegenüber, hat die obsiegende Privatpartei in der Regel Anspruch auf Ersatz der ausseramtlichen Kosten durch die unterliegende Privatpartei.» (§ 80 Abs. 2 VRG) Ist die Gegenpartei anwaltlich vertreten, beträgt diese Entschädigung erfahrungsgemäss zwischen ca. Fr. 1'000 und Fr. 4'000, im Einzelfall auch mehr.\n\n«Die Behörde kann einen Kostenvorschuss verlangen.» (§ 79 Abs. 1 VRG) «Einem bedürftigen Beteiligten kann auf Antrag die unentgeltliche Rechtspflege bewilligt werden, sofern das Verfahren nicht als aussichtslos oder mutwillig erscheint.» (§ 81 Abs. 1 VRG)\n\nGRUSS",
+        basis: "§ 76, § 77, § 79, § 80 Abs. 2 und 3, § 81 VRG; § 5 und § 9 Abs. 1 Ziff. 2 Verordnung des Grossen Rates über die Gebühren der kantonalen Verwaltungsbehörden (VGV, RB 631.1).",
+        check: ""
+      },
+      {
+        id: "kostenvorschuss-frist",
+        category: "Akten & Kosten",
+        title: "Bis wann muss der Kostenvorschuss bezahlt sein?",
+        hint: "Frist steht in der Verfügung. Massgebend ist § 24 Abs. 4 VRG.",
+        phone: "Die Frist steht in unserer Verfügung. Sie ist gewahrt, wenn der Betrag rechtzeitig zu unseren Gunsten der Schweizerischen Post übergeben oder einem Post- oder Bankkonto in der Schweiz nachweislich und unwiderruflich belastet worden ist.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nDie Zahlungsfrist ist in der Verfügung angegeben. Gemäss § 24 Abs. 4 VRG gilt: «Die Frist für die Zahlung eines Vorschusses ist gewahrt, wenn der Betrag rechtzeitig zu Gunsten der Behörde der schweizerischen Post übergeben oder einem Post- oder Bankkonto in der Schweiz belastet worden ist.» Bitte achten Sie darauf, dass die Belastung nachweislich und unwiderruflich erfolgt.\n\n«Wird der Vorschuss trotz Hinweis auf die Säumnisfolgen nicht geleistet, kann das Verfahren abgeschrieben werden oder die beantragte Amtshandlung unterbleiben, sofern nicht öffentliche Interessen entgegenstehen.» (§ 79 Abs. 2 VRG)\n\nGRUSS",
+        basis: "§ 24 Abs. 4 VRG; § 79 VRG.",
+        check: ""
+      },
+
+      {
+        id: "kostenvorschuss-hoehe",
+        category: "Akten & Kosten",
+        title: "Wie hoch ist der Kostenvorschuss?",
+        hint: "Praxiswert RD: in der Regel Fr. 700; bei sehr tiefem Streitwert tiefer. Immer als «in der Regel» kommunizieren – massgebend ist der Betrag in der Verfügung.",
+        phone: "Der Kostenvorschuss beträgt in der Regel 700 Franken, bei sehr tiefem Streitwert auch weniger. Massgebend ist der Betrag in unserer Verfügung.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\n«Die Behörde kann einen Kostenvorschuss verlangen.» (§ 79 Abs. 1 VRG) Im Rekursverfahren vor dem Departement beträgt der Kostenvorschuss in der Regel Fr. 700. Bei sehr tiefem Streitwert kann er tiefer angesetzt werden. Massgebend sind der Betrag und die Zahlungsfrist in der Verfügung.\n\n«Wird der Vorschuss trotz Hinweis auf die Säumnisfolgen nicht geleistet, kann das Verfahren abgeschrieben werden oder die beantragte Amtshandlung unterbleiben, sofern nicht öffentliche Interessen entgegenstehen.» (§ 79 Abs. 2 VRG)\n\nDer Kostenvorschuss entspricht nicht den definitiven Verfahrenskosten. Diese werden im Entscheid festgelegt.\n\nGRUSS",
+        basis: "§ 79 VRG; § 24 Abs. 4 VRG (Fristwahrung bei Zahlung); § 76 Abs. 2 VRG (Kostenregelung durch die in der Hauptsache zuständige Behörde).",
+        check: ""
+      },
+      {
+        id: "kosten-rueckzug",
+        category: "Akten & Kosten",
+        title: "Was kostet es, wenn der Rekurs zurückgezogen wird?",
+        hint: "Praxis RD: Rückzug innert Frist zur Leistung des Kostenvorschusses → in der Regel keine Kosten. Späterer Rückzug → in der Regel um Fr. 300. Beides unter Vorbehalt von grossem Aufwand.",
+        phone: "Ziehen Sie den Rekurs innert Frist zur Leistung des Kostenvorschusses zurück, verzichten wir in der Regel auf Kosten. Bei einem späteren Rückzug betragen die Kosten in der Regel CHF 300.–. Bei grossem Aufwand ist es anders.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Anfrage.\n\nWird der Rekurs zurückgezogen, wird das Verfahren abgeschrieben (§ 52 VRG). Für die Kosten gilt in der Praxis des Departements:\n- Rückzug innert Frist zur Leistung des Kostenvorschusses: In der Regel wird auf die Erhebung von Kosten verzichtet.\n- Späterer Rückzug: Die Kosten betragen in der Regel CHF 300.–.\n\nBei grossem Aufwand können die Kosten davon abweichen; sie werden im Abschreibungsentscheid festgelegt. Die Gebühr bemisst sich «nach dem Aufwand und der Bedeutung der Sache» (§ 5 Abs. 1 VGV).\n\nFür einen Rückzug senden Sie uns bitte eine kurze schriftliche, unterzeichnete Erklärung mit der Verfahrensnummer.\n\nGRUSS",
+        basis: "§ 52 VRG (Abschreibung bei Rückzug); § 76 und § 77 VRG; § 5 Abs. 1 VGV.",
+        check: ""
+      },
+
+      /* ───────────── PRESSEANFRAGEN (Hauptkategorie «presse») ───────────── */
+      {
+        id: "presse-zustaendigkeit",
+        main: "presse",
+        category: "Presseanfragen",
+        title: "Presseanfrage – wer ist zuständig?",
+        hint: "Presseanfragen nicht selbst beantworten. Zuständig ist die Generalsekretärin Karin Enzler (Direktwahl oben in der Schnellwahl).",
+        phone: "Für Presseanfragen ist die Generalsekretärin, Karin Enzler, zuständig. Gerne verbinde ich Sie.",
+        answer: "",
+        basis: "Interne Zuständigkeit DBU.",
+        check: ""
+      },
+
+      /* ───────────── ORGANISATION ───────────── */
+      {
+        id: "abwesend",
+        category: "Organisation",
+        title: "Reklamation wegen Verzögerung",
+        hint: "Anfrage an die zuständige juristische Mitarbeiterin oder den zuständigen juristischen Mitarbeiter weiterleiten. Ist diese Person nicht erreichbar: Telefonnotiz erstellen (Name, Telefonnummer, Verfahrensnummer, Anliegen).",
+        phone: "Ich leite Ihre Anfrage an die zuständige juristische Mitarbeiterin oder den zuständigen juristischen Mitarbeiter weiter.",
+        answer: "Guten Tag\n\nBesten Dank für Ihre Nachricht.\n\nWir leiten Ihre Anfrage an die zuständige juristische Mitarbeiterin oder den zuständigen juristischen Mitarbeiter weiter.\n\nGRUSS",
+        basis: "Art. 29 Abs. 1 BV (Beurteilung innert angemessener Frist).",
+        check: ""
+      }
+    ].map(f => ({ ...f, answer: f.answer ? f.answer.replace("GRUSS", GRUSS) : "" }));
+
+    /* ───────────── SIGNATUR & DISCLAIMER ───────────── */
+    const MAIL_SUBJECT = "RE: Ihre Anfrage";
+    const LOGO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGUAAAAlCAYAAABbJCejAAAAAXNSR0IArs4c6QAAAAlwSFlzAAAOxAAADsQBlSsOGwAAABl0RVh0U29mdHdhcmUATWljcm9zb2Z0IE9mZmljZX/tNXEAAAmPSURBVGhD7ZoJsJZTGMdJkS37lnWs2XLtu0EMQhpJDEMjS4wlUmTpdkWamFzGvo5lhihr1mFa7FnKnkjXlqaoi5Ct/H7fnPN577fP/Yor7zPzn7O/57zPc86znPdtXVdXt0RKLYsDrVvWclrWampra9uxaX/4p1eVCqU0x7dDMPsgmCvKCYZ+K9Bvrv3In0qyFPgM/AKm0Daj3DNieyqUEpyCkS/C4PXAIPKDyjD1EPp1pM8LYD8wFuwFlgUbgu6pUCrlQJl+CON+mN0DaHwVzoLcIbR1oK4GTATrgt/odwv1J5NfC7Qifzp1N1WyrPSkVMAlmDkCprrTLyMdmBQM5Z2oPwz8DHYE08BX1N9OOimqPso3VDBVpksqlAo5BXMfgrHz6T44CGa+u5+yKmtWEMinpCuBb8FmjLnex9NvW5IfSa8mnUn9sFLTpkKpUCh2g5mjkoKhqgFsCpbzVIA1QCug2jo08WjLT4BzwePlpkyFUo5DOe0I5hEE8xvVl5MfQP5F8t2AdmUc2BiouvYIJ0RjP4O+z1PWHh1Mui/py9TpFORRKpQKhAITPQFbggbwLcx8kro/wVDKF1G+W5eYfFfQCSgo7cuq4CewgPbe9LuZ/AvktyftTLor6TDq/0guIxVKEaHAsHVoOhK8D3YDmwH5NY22zUlPAZ6YoZQvDTHKfeQbqdN2vALmUX+mU2h/wG1k76VuPOlEyleRbgCMZ7KUCqWIUKjeDujeTgftwT1BQL1JlwaDYW5fGGuQeAXpJZQVwmjyv1OnTWlD/kTSCbrD5DcifxrpwaQfAU/IN7lLSIVSQCjhJBxHk+6tHtfaQIZ6csaAenAK/TrD7KdUZQnBGMGPDULVTfY03UmfT0j7A+3N5cCYRrtk/yaUCiXBDhi3CsXzQRvwHZDZO4ORoCd4EiY+5hD66mW1Jx1A3ZXBiHtiLqZ+C7A7+DI8x7qDwDygJ2aso5AKUiqUpmxZnaLe03ugHdCWvASOlsEw8sYgEANG29cEq1lH2xgE4qkaAgYABdELNIK9QQ19GumzInnjmKKUCiXBGncvTDuPqh5Az+lBoE3ZBjxCm57VV0Ajf5aMBodrxEnHM35csCd6ZX2DzYkOwSvhJL5Dm2rwjmJSSYWSwxkYqeGth4HR+/KUfAh0iQ0UPSErg270vZ90An016scGlVZLfkkwXFVGHz0u1d0uJEby/YDXNR1pe7eQYFKhFNmuQTg3wDzV2cPgVaB6Up3dDc6g7RbS241bSI1djiHtZTwSbMwQ0lrKc4DCU3WdDd4GenbFhUJndaednbQYadiGA91DJzc61WBNLTHmP9/E+32mMedFNNAy1cCwLfXXUL8++X6k+5DqAMgb1Zs2RnWly+upUDCzgYGjvPbUefoKUjwpW9F6bAUcdEcYOMW+Gr7FWiiBwU/DzK/DZlQ1DaPclvQOGH02+fvIrwd0c/XUMhROhxs9CkaPztsBhWssU1IoTqgBcvfrDipJT4Y0GejKuRiNnsc5kj74Yk/BVqhJ5MkXQO/Jm+HdaJtCOhUBaEvyiPo36aNg6kgHkT4AtEGlXWIGPksnoUHSzTNo8uZT6pL0qWn324HkRN7/6EnogxsEjaSvOtfnbERyYOj7BvWTQr0ejIJ1vIZSwRr1uvPcGK8BL/h+YszoMOYAUlWEG+NR0AiMin3GCFVD6GeQ53ePrcPz3GxjaH8+tBt9a7i9p/qOem2Fa1UN+TzJ6Nt1ZImy1/TXUaGLq6ZwDX2BQaCeWZNrkuRY84x/OwqGYn/KvmNRKmTo4wmJg2REITKw0uC5qEjnMLlC9Jpa3XlraPAb96SQNziLDHiOvEfaKFfye8SPwAs7d5RXFhpTv3lHuoSMu8y7KOllMJt+NaTPAL/0Jeki2m5mTbqtCsU1KRR3fEYokHFHXKtfGJsIxQ7BU/L9tKcngc+Bqsi+cfPlTP130U0Z3kXV5xVN0W/2lQglV0hxJtWcApGxqjt3m9QHKJRfEytMXiXIdEkj6E5XZTaClYEup6S6dHf5slEgnl4FpcCiUO3r5pAUfBTIBeSfBtcCv5f35llX65SQzqGsUJwzUlIN5117JPopnAd4xijq1CT1wF0/g7oetI1I9s3NK1g3CPUDg2Dy7r0cU61L7FG8igk80ho5F5qJcKG8b9mlFhzaZJgXfrqfqh4ZK8n47sz1lgXme51Evz9J6vSBwEvBD+gj4z8GCkXyCmWhEM/XSH8fVJqxh9/eDThLCsXJGfse4/w0fCnpEMoZby1J1QplbJhoChNo+Pxro5RbXY4pb7FIo+gM8cx4clRx7ycG6+c3EUowqDXU9wx2r0POZNWsq+C6mXMicz1K4wlAg18RhU2jjVK1DqWsKs1StULJ2Bse7FV2KUqemlLMyfbjmUm16TzJZ2gbmhD9+1BxTaicS+ruNSrvWmRhla6pHKON8PPWU24QgpjMml3vhaT1lLNCXShCCQso5hDYnNTZpebMPiN4PA2M1VNTJe4PnuEF9NL0xCLNo07V5AcjyQ9IRzDey79K/yCJdqkcLwu1q7b1QEt6VIUGskbv2gzIu6gKKWe+QFYrlFIv4WfQSE6qy70BiDq+EgboESkMT41/k+ja6lR4NR7JF/HyML7LF0Eg/kGSDIijwOMG2YTndaFPA/ASslnEXB8FI98swTJej9N7suyGLCQUG2OM4kJzva9lEqtPHtvlQ30c+wFlVYTP8+o6957HueNCNMqSfxNmSW+GxXakwku8+A3cdo2jEbTkyfHFopt8PGN0cXNtit6ipG3aJDzPq5FcKqeK8wawzmYJJOdds+q0kFDcSR5FX1by61mSDJRi9B/dWx84AXj342dOvYzpMMdgS7/foE5jrYu6OjAY1INxLm2M3pa6OWnMM3PynIt5jjetewA3gcGpHppf8aQ2MoU+R5HX3dwBGMPoPst0+7mx4rsa9LkGBSczjW1GA6/i7eeHqX+V8oTCC+pF+dWsINGuDhRZCi5i59wB1N8Fs/SmvCWYRVkDXIiSNiLbzljv1jwpqkLthPGLjkXSvc3UGQOQ+FuPJ+jX8B42KZz4pdB+3tXtRT9V6R9unjDhXUXW9o9XL0qbknkZXlqGGvg1h1SFe4aBfgvXjTRA9BpG8rlNdnYhvz+so4nXl+uGNmdxi2rMIhdKlQtX9XhToLHXQUg6Ce74njA3eXNQ5XQtY3iLFgoMnwmbOnFCdBT8gUG1pR3TifCiMdfetQyuVrmKFi2U+G4w3w9L4n9B/wmh/C8kkXjJvwDufqeXIhJUvAAAAABJRU5ErkJggg==";
+    const SIG_TEXT = "Kanton Thurgau\nDepartement für Bau und Umwelt\nGeneralsekretariat\n\nVerwaltungsgebäude\nPromenade 8\n8510 Frauenfeld\nT +41 58 345 62 20\ngeneralsekretariat.dbu@tg.ch\nwww.dbu.tg.ch";
+    const DISCLAIMER = "Bitte beachten Sie: Diese Angaben sind eine allgemeine und unverbindliche Information des Departements für Bau und Umwelt. Sie geben die gesetzlichen Bestimmungen und die übliche Praxis in allgemeiner Form wieder und beruhen nicht auf einer Prüfung Ihres konkreten Einzelfalls. Sie stellen keine Rechtsberatung und keine Zusicherung dar und begründen keine Rechte oder Ansprüche. Massgebend sind allein der Wortlaut der Gesetze und die Rechtsmittelbelehrung des jeweiligen Entscheids. Für eine verbindliche Beurteilung Ihres Einzelfalls wenden Sie sich bitte an Ihre Rechtsvertretung (z. B. eine Anwältin oder einen Anwalt) oder an Ihre Rechtsschutzversicherung.";
+
+    function esc(t) {
+      return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    function mailText(item) {
+      return item.answer + "\n\n" + SIG_TEXT + "\n\n\nDisclaimer: " + DISCLAIMER;
+    }
+    function mailHtml(item, imgSrc) {
+      const f = "font-family:Arial,Helvetica,sans-serif;";
+      return '<div style="' + f + 'font-size:10pt;color:#000;">' +
+        linkLaws(item.answer, "color:#1f4e79;text-decoration:underline;")
+          .replace(/(^|[\s(])(www\.[a-z0-9.-]+\.[a-z]{2,})/gi, '$1<a href="https://$2" target="_blank" rel="noopener" style="color:#1f4e79;text-decoration:underline;">$2</a>')
+          .replace(/\n/g, "<br>") +
+        '<br><br><img src="' + (imgSrc || LOGO) + '" width="101" height="37" alt="Thurgau" style="display:block;border:0;"><br>' +
+        '<span style="' + f + 'font-size:9pt;line-height:1.35;">' +
+        'Kanton Thurgau<br>Departement für Bau und Umwelt<br>Generalsekretariat<br><br>' +
+        'Verwaltungsgebäude<br>Promenade 8<br>8510 Frauenfeld<br>T +41 58 345 62 20<br>' +
+        '<a href="mailto:generalsekretariat.dbu@tg.ch" style="color:#000;">generalsekretariat.dbu@tg.ch</a><br>' +
+        '<a href="https://www.dbu.tg.ch" style="color:#000;">www.dbu.tg.ch</a></span>' +
+        '<br><br><div style="' + f + 'font-size:6.5pt;line-height:1.35;color:#666666;"><font size="1" color="#666666" face="Arial">' +
+        '<span style="' + f + 'font-size:6.5pt;color:#666666;line-height:1.35;mso-ansi-font-size:6.5pt;">' +
+        '<b style="font-size:6.5pt;">Disclaimer:</b> ' + esc(DISCLAIMER) + '</span></font></div>' +
+        '</div>';
+    }
+
+    /* ═════════════ KONFIGURATION (hier anpassen) ═════════════
+       Ebenen, Bereiche, Hauptkategorien, Kontakte, Backlog und KI.
+       Neue Ebene / neuer Bereich / neue Hauptkategorie = ein zusätzlicher Eintrag. */
+    const CALL_PROTOCOL = "tel:";   // falls XPhone nur callto: kennt: "callto:"
+
+    // Kontakte: tel = XPhone-Nummer (international, ohne Leerzeichen); teams = Teams-Anmeldeadresse
+    const CONTACTS_RD = [
+      { name: "Danielle Meyer Schuster", tel: "+41583456229", telLabel: "058 345 62 29", teams: "danielle.meyer@tg.ch" },
+      { name: "Andreas M. Schlatter", tel: "+41583456225", telLabel: "058 345 62 25", teams: "andreas.schlatter@tg.ch" }
+    ];
+    // Ständige Liste / öffentliches Beschaffungswesen
+    const CONTACTS_BESCHAFFUNG = [
+      { name: "Karin Enzler",      tel: "+41583456232", telLabel: "058 345 62 32", teams: "karin.enzler@tg.ch" },
+      { name: "Claudia Mathias",   tel: "+41583456224", telLabel: "058 345 62 24", teams: "claudia.mathias@tg.ch" },
+      { name: "Patricia Stutz",    tel: "+41583456237", telLabel: "058 345 62 37", teams: "patricia.stutz@tg.ch" }
+    ];
+    const CONTACTS_BAUGESUCH = [
+      { name: "Michael Boller",    tel: "+41583453294", telLabel: "058 345 32 94", teams: "michael.boller@tg.ch" },
+      { name: "Vincenzo Schäfer",  tel: "+41583453287", telLabel: "058 345 32 87", teams: "vincenzo.schaefer@tg.ch" }
+    ];
+    const CONTACTS_PRESSE = [
+      { name: "Karin Enzler (Generalsekretärin)", tel: "+41583456232", telLabel: "058 345 62 32", teams: "karin.enzler@tg.ch" }
+    ];
+    const CONTACTS_UVP = [
+      { name: "Clara Andres",      tel: "+41583456239", telLabel: "058 345 62 39", teams: "clara.andres@tg.ch" }
+    ];
+
+    const CONFIG = {
+      levels: [
+        { id: "faq",  label: "FAQ & Auskunftshilfe", title: "FAQ & Auskunftshilfe für Sekretariat GS/RD", type: "faq" },
+        { id: "info", label: "Allgemeine Informationen und Arbeitshilfen", title: "Allgemeine Informationen und Arbeitshilfen", type: "sections",
+          sections: [
+            { id: "prozesshandbuch", label: "Prozesshandbuch", text: "Prozesshandbuch des Departements" },
+            { id: "checkliste-gesetzgebung", label: "Checkliste Gesetzgebung", text: "Checkliste für Gesetzgebungsprojekte" },
+            { id: "schreibweisungen", label: "Schreibweisungen", text: "Schreibweisungen der Staatskanzlei" },
+            { id: "sitzungszimmer",   label: "Sitzungszimmer",   text: "Anzahl Plätze, Lokalität, Infrastruktur und Buchungszugang." },
+            { id: "zugaenge",         label: "Zugänge & Lizenzen", text: "Wo Zugänge (z. B. Swisslex) erhältlich sind. Keine Passwörter." }
+          ] }
+      ],
+      // Hauptkategorien der Ebene «FAQ & Auskunftshilfe»; contacts leer = «Kontakte folgen»
+      mainCategories: [
+        { id: "rd",         label: "Rechtsauskunft RD", contacts: CONTACTS_RD },
+        { id: "presse",     label: "Presseanfragen", contacts: CONTACTS_PRESSE },
+        { id: "baugesuch",  label: "Baugesuchszentrale", contacts: CONTACTS_BAUGESUCH },
+        { id: "beschaffung", label: "Ständige Liste / öffentliches Beschaffungswesen", contacts: CONTACTS_BESCHAFFUNG },
+        { id: "uvp",        label: "UVP", contacts: CONTACTS_UVP },
+        { id: "drohung",    label: "Telefonische Drohungen (Bedrohungsmanagement)", contacts: [] }
+      ],
+      defaults: { level: "faq", main: "rd" },
+      // Zusätzliche Rubrik im Formular für generelle Verbesserungsvorschläge
+      improvement: {
+        id: "general", label: "Plattform allgemein (Verbesserung)", type: "general",
+        sections: [
+          { id: "darstellung", label: "Darstellung & Bedienung" },
+          { id: "inhalte",     label: "Inhalte & Struktur" },
+          { id: "funktionen",  label: "Funktionen & Werkzeuge" },
+          { id: "sonstiges",   label: "Sonstiges" }
+        ]
+      },
+
+      // Backlog für neue Einträge (Microsoft Lists).
+      // mode: "form" (Formular der Microsoft-Liste) | "mail" | "sharepoint" | "flow"
+      // Bei "form" öffnet der Knopf direkt das Listenformular; ohne formUrl erscheint die eingebaute Maske.
+      backlog: {
+        mode: "form",
+        formUrl: "https://kttg.sharepoint.com/:l:/s/dbu-org-00029/JADRedVxSD2xQ4-LPSJ4Fm-zAYZ6tF3VyhYgRj2iyimElQ0?nav=OTc1YmFjYWYtZjg4Ny00NThhLTliMjMtYjFiN2ZlNWU2MjMw", // Microsoft Lists → Formulare → «Link kopieren»
+        mailTo: "",                         // Empfänger für den Rückfallweg per E-Mail
+        sharepoint: {
+          siteUrl: "",                      // z. B. https://kantontg.sharepoint.com/sites/DBU-RD
+          listTitle: "FAQ-Backlog",
+          // Interne Spaltennamen der Liste
+          fields: {
+            question: "Title", level: "Rubrik", request: "ArtAntrag", main: "KategorieBereich", sub: "Unterkategorie",
+            kind: "Antwortart", phone: "AntwortTelefon", mail: "AntwortEmail", content: "Inhalt", link: "LinkAblageort",
+            basis: "Rechtsgrundlage", hint: "HinweisIntern", author: "ErfasstVon", status: "Status", created: "ErfasstAm"
+          }
+        },
+        flow: { url: "" }                   // HTTP-Auslöser eines Power-Automate-Flows
+      },
+
+      // Vorbereitung kantonsinterne KI (noch nicht aktiv – es wird nichts aufgerufen)
+      ki: {
+        enabled: false,
+        apiStyle: "openai-chat",            // OpenAI-kompatible Chat-Schnittstelle
+        endpoint: "",
+        model: "",
+        onlyAuthorized: true                // KI darf sich nur auf autorisierte Antworten stützen
+      }
+    };
+    const BACKLOG_STATUS = "Neu – zur Freigabe";
+
+    const ICON_CALL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>';
+    const ICON_CHAT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+
+    const EMBEDDED = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+    function copyNumber(label) {
+      const done = () => toast("Nummer " + label + " kopiert – startet XPhone nicht, in XPhone einfügen (Strg+V).");
+      try {
+        navigator.clipboard.writeText(label).then(done, () => {});
+      } catch (e) { /* Zwischenablage nicht verfügbar */ }
+    }
+
+    function renderQuick(list, el) {
+      el.innerHTML = '<span class="quick-title">Schnellwahl</span>';
+      if (!list || !list.length) {
+        const empty = document.createElement("span");
+        empty.className = "quick-empty";
+        empty.textContent = "Kontakte folgen";
+        el.appendChild(empty);
+        return;
+      }
+      list.forEach(p => {
+        const row = document.createElement("div");
+        row.className = "person";
+        const name = document.createElement("span");
+        name.className = "person-name";
+        name.textContent = p.name;
+        row.appendChild(name);
+        if (p.tel) {
+          const a = document.createElement("a");
+          a.className = "qbtn";
+          a.href = CALL_PROTOCOL + p.tel;
+          a.title = p.name + " über XPhone anrufen";
+          if (EMBEDDED) {
+            // In Teams/SharePoint läuft die Seite in einem eingebetteten Rahmen, der tel:-Links im selben
+            // Rahmen blockiert. Über ein neues Fenster gibt Teams den Link an Windows (XPhone) weiter;
+            // zusätzlich wird die Nummer kopiert, damit sie notfalls in XPhone eingefügt werden kann.
+            a.target = "_blank";
+            a.rel = "noopener";
+            a.addEventListener("click", () => copyNumber(p.telLabel));
+          }
+          a.innerHTML = ICON_CALL;
+          a.appendChild(document.createTextNode(p.telLabel));
+          row.appendChild(a);
+        }
+        if (p.teams) {
+          const t = document.createElement("a");
+          t.className = "qbtn teams";
+          t.href = "https://teams.microsoft.com/l/chat/0/0?users=" + encodeURIComponent(p.teams);
+          t.target = "_blank";
+          t.rel = "noopener";
+          t.title = "Teams-Chat mit " + p.name;
+          t.innerHTML = ICON_CHAT;
+          t.appendChild(document.createTextNode("Teams"));
+          row.appendChild(t);
+        }
+        el.appendChild(row);
+      });
+    }
+
+
+
+    /* ───────────── VERLINKUNG DER RECHTSGRUNDLAGEN ───────────── */
+    const TG_BOOK = "https://www.rechtsbuch.tg.ch/app/de/texts_of_law/";
+    const LAWS = {
+      "VRG": { tg: "170.1" },
+      "PBG": { tg: "700" },
+      "VGV": { tg: "631.1" },
+      "VeÜ": { tg: "170.15" },
+      "BV":  { fed: "https://www.fedlex.admin.ch/eli/cc/1999/404/de" },
+      "BGG": { fed: "https://www.fedlex.admin.ch/eli/cc/2006/218/de" }
+    };
+    const LAW_RE = /(?<![A-Za-zÄÖÜäöü])(VRG|PBG|VGV|VeÜ|BV|BGG)(?![A-Za-zÄÖÜäöü])/g;
+    function lawUrl(abbr, num) {
+      const l = LAWS[abbr];
+      if (!l) return null;
+      if (l.tg) return TG_BOOK + l.tg + (num ? "/art/" + num : "");
+      return l.fed + (num ? "#art_" + num : "");
+    }
+    function linkLaws(text, inlineStyle) {
+      const e = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      let prevLaw = null;
+      return text.split(/([;\n)])/).map(seg => {
+        // Fundstellen finden (§ 45, §§ 54, Art. 29) und dem nächstfolgenden Erlass zuordnen
+        const laws = [...seg.matchAll(LAW_RE)].map(m => ({ i: m.index, a: m[1] }));
+        const tok = /(§§?\s*(\d+[a-z]?)|Art\.\s*(\d+[a-z]?))|RB\s(\d+(?:\.\d+)*)/g;
+        let out = "", last = 0, m;
+        while ((m = tok.exec(seg)) !== null) {
+          let url = null, label = m[0];
+          if (m[4]) {
+            url = TG_BOOK + m[4];
+          } else {
+            const next = laws.find(l => l.i > m.index) || [...laws].reverse().find(l => l.i < m.index) || (prevLaw ? { a: prevLaw } : null);
+            if (next) url = lawUrl(next.a, m[2] || m[3]);
+          }
+          out += e(seg.slice(last, m.index));
+          out += url
+            ? '<a class="law" href="' + url + '" target="_blank" rel="noopener" title="Im Rechtsbuch öffnen"' + (inlineStyle ? ' style="' + inlineStyle + '"' : "") + ">" + e(label) + "</a>"
+            : e(label);
+          last = m.index + m[0].length;
+        }
+        if (laws.length) prevLaw = laws[laws.length - 1].a;
+        return out + e(seg.slice(last));
+      }).join("");
+    }
+
+    /* ───────────── EINTRÄGE: Struktur für Navigation und KI ─────────────
+       Jeder Eintrag: id, level, main, category (Unterkategorie), status, Texte, basis.
+       Bestehende Einträge gehören zu «Rechtsauskunft RD» und sind autorisiert. */
+    FAQS.forEach(f => {
+      f.level = f.level || "faq";
+      f.main = f.main || "rd";
+      f.status = f.status || "autorisiert";
+    });
+    // Maschinenlesbarer Export für eine spätere KI-Anbindung (z. B. als Wissensquelle)
+    window.FAQ_DATA = {
+      getEntries: (opts = {}) => FAQS
+        .filter(f => !opts.onlyAuthorized || f.status === "autorisiert")
+        .map(f => ({ id: f.id, level: f.level, main: f.main, category: f.category, status: f.status,
+                     title: f.title, hint: f.hint, phone: f.phone, answer: f.answer, basis: f.basis })),
+      config: CONFIG
+    };
+
+    const STORE_KEY = "faq-gs-rd.state";
+    function loadState() {
+      try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { return {}; }
+    }
+    function saveState() {
+      try { localStorage.setItem(STORE_KEY, JSON.stringify({ level: activeLevel, main: activeMain })); } catch (e) {}
+    }
+    const saved = loadState();
+    let activeLevel = CONFIG.levels.some(l => l.id === saved.level) ? saved.level : CONFIG.defaults.level;
+    let activeMain = CONFIG.mainCategories.some(m => m.id === saved.main) ? saved.main : CONFIG.defaults.main;
+    let activeCategory = "Alle";
+    let query = "";
+
+    const levelsEl = document.getElementById("levels");
+    const mainEl = document.getElementById("maincats");
+    const quickEl = document.getElementById("quick");
+    const filtersEl = document.getElementById("filters");
+    const searchWrapEl = document.querySelector(".search-wrap");
+    const metaEl = document.getElementById("meta-bar");
+    const listEl = document.getElementById("list");
+    const emptyEl = document.getElementById("empty");
+    const placeholderEl = document.getElementById("placeholder");
+    const sectionsEl = document.getElementById("sections");
+    const countEl = document.getElementById("count");
+    const searchEl = document.getElementById("q");
+
+    const levelById = id => CONFIG.levels.find(l => l.id === id);
+    const mainById = id => CONFIG.mainCategories.find(m => m.id === id);
+    const levelEntries = () => FAQS.filter(f => f.level === activeLevel);
+    const mainEntries = () => levelEntries().filter(f => f.main === activeMain);
+
+    function renderLevels() {
+      levelsEl.innerHTML = "";
+      CONFIG.levels.forEach(l => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "level-tab" + (l.id === activeLevel ? " active" : "");
+        b.textContent = l.label;
+        b.setAttribute("aria-pressed", l.id === activeLevel ? "true" : "false");
+        b.addEventListener("click", () => {
+          activeLevel = l.id;
+          activeCategory = "Alle";
+          saveState();
+          renderAll();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+        levelsEl.appendChild(b);
+      });
+    }
+
+    function renderMainCats() {
+      mainEl.innerHTML = "";
+      CONFIG.mainCategories.forEach(m => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "maincat" + (m.id === activeMain ? " active" : "");
+        b.textContent = m.label;
+        b.setAttribute("aria-pressed", m.id === activeMain ? "true" : "false");
+        b.addEventListener("click", () => {
+          activeMain = m.id;
+          activeCategory = "Alle";
+          saveState();
+          renderAll();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+        mainEl.appendChild(b);
+      });
+    }
+
+    function renderFilters() {
+      filtersEl.innerHTML = "";
+      const cats = Array.from(new Set(mainEntries().map(f => f.category)));
+      if (!cats.length || query) { filtersEl.hidden = true; return; }
+      filtersEl.hidden = false;
+      ["Alle", ...cats].forEach(cat => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip" + (cat === activeCategory ? " active" : "");
+        btn.textContent = cat;
+        btn.addEventListener("click", () => {
+          activeCategory = cat;
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          renderFilters();
+          renderList();
+        });
+        filtersEl.appendChild(btn);
+      });
+    }
+
+    function matches(item) {
+      if (item.level !== activeLevel) return false;
+      if (!query) {
+        if (item.main !== activeMain) return false;
+        return activeCategory === "Alle" || item.category === activeCategory;
+      }
+      const main = mainById(item.main);
+      const hay = [item.title, item.category, main ? main.label : "", item.hint, item.phone, item.answer, item.basis].join(" ").toLowerCase();
+      return query.split(/\s+/).every(t => hay.includes(t));
+    }
+
+    function renderSections(level) {
+      sectionsEl.innerHTML = "";
+      (level.sections || []).forEach(s => {
+        const card = document.createElement("article");
+        card.className = "section-card";
+        card.dataset.id = s.id;
+        const h2 = document.createElement("h2");
+        h2.textContent = s.label;
+        const p = document.createElement("p");
+        p.textContent = s.text || "";
+        const soon = document.createElement("span");
+        soon.className = "soon";
+        soon.textContent = "Inhalte folgen";
+        card.append(h2, p, soon);
+        sectionsEl.appendChild(card);
+      });
+    }
+
+    function renderAll() {
+      const level = levelById(activeLevel);
+      renderLevels();
+      document.getElementById("page-title").textContent = level.title || level.label;
+      const isFaq = level.type === "faq";
+      mainEl.hidden = !isFaq;
+      quickEl.hidden = !isFaq;
+      searchWrapEl.hidden = !isFaq;
+      metaEl.hidden = !isFaq;
+      sectionsEl.hidden = isFaq;
+      document.getElementById("info-bar").hidden = isFaq;
+      if (!isFaq) {
+        filtersEl.hidden = true;
+        listEl.innerHTML = "";
+        emptyEl.hidden = true;
+        placeholderEl.hidden = true;
+        renderSections(level);
+        return;
+      }
+      renderMainCats();
+      renderQuick(mainById(activeMain).contacts, quickEl);
+      renderFilters();
+      renderList();
+    }
+
+    function b64utf8(str) {
+      const bytes = new TextEncoder().encode(str);
+      let bin = "";
+      bytes.forEach(b => bin += String.fromCharCode(b));
+      return btoa(bin);
+    }
+    function wrap76(s) { return s.replace(/(.{76})/g, "$1\r\n"); }
+
+    function openInOutlook(item) {
+      const boundary = "----=_DBU_" + Date.now();
+      const cid = "logo-thurgau@dbu.tg.ch";
+      const html = '<html><head><meta charset="utf-8"></head><body>' +
+        mailHtml(item, "cid:" + cid) + "</body></html>";
+      const eml = [
+        "X-Unsent: 1",
+        "From: Generalsekretariat DBU <generalsekretariat.dbu@tg.ch>",
+        "To: ",
+        "Subject: =?UTF-8?B?" + b64utf8(MAIL_SUBJECT) + "?=",
+        "MIME-Version: 1.0",
+        'Content-Type: multipart/related; boundary="' + boundary + '"; type="text/html"',
+        "",
+        "--" + boundary,
+        "Content-Type: text/html; charset=UTF-8",
+        "Content-Transfer-Encoding: base64",
+        "",
+        wrap76(b64utf8(html)),
+        "",
+        "--" + boundary,
+        'Content-Type: image/png; name="logo-thurgau.png"',
+        "Content-Transfer-Encoding: base64",
+        "Content-ID: <" + cid + ">",
+        'Content-Disposition: inline; filename="logo-thurgau.png"',
+        "",
+        wrap76(LOGO.split(",")[1]),
+        "",
+        "--" + boundary + "--",
+        ""
+      ].join("\r\n");
+      const blob = new Blob([eml], { type: "message/rfc822" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "Antwort - " + item.title.replace(/[\\/:*?"<>|]/g, "") + ".eml";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    }
+
+    function flash(button) {
+      const prev = "Text in die Zwischenablage kopieren";
+      button.textContent = "Kopiert";
+      button.classList.add("copied");
+      setTimeout(() => {
+        button.textContent = prev;
+        button.classList.remove("copied");
+      }, 1400);
+    }
+
+    async function copyRich(item) {
+      const html = mailHtml(item);
+      const text = mailText(item);
+      try {
+        await navigator.clipboard.write([new ClipboardItem({
+          "text/html": new Blob([html], { type: "text/html" }),
+          "text/plain": new Blob([text], { type: "text/plain" })
+        })]);
+      } catch (e) {
+        const box = document.createElement("div");
+        box.contentEditable = "true";
+        box.style.position = "fixed";
+        box.style.left = "-9999px";
+        box.innerHTML = html;
+        document.body.appendChild(box);
+        const range = document.createRange();
+        range.selectNodeContents(box);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        document.execCommand("copy");
+        sel.removeAllRanges();
+        document.body.removeChild(box);
+      }
+    }
+
+    function toast(msg) {
+      let t = document.getElementById("toast");
+      if (!t) {
+        t = document.createElement("div");
+        t.id = "toast";
+        t.setAttribute("role", "status");
+        t.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1d2b3a;color:#fff;padding:0.7rem 1.1rem;border-radius:10px;font-size:0.9rem;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:50;max-width:90vw;text-align:center;transition:opacity .2s";
+        document.body.appendChild(t);
+      }
+      t.textContent = msg;
+      t.style.opacity = "1";
+      clearTimeout(t._h);
+      t._h = setTimeout(() => { t.style.opacity = "0"; }, 6000);
+    }
+
+    function openNewMail(item) {
+      const body = mailText(item).replace(/\r?\n/g, "\r\n");
+      window.location.href = "mailto:?subject=" + encodeURIComponent(MAIL_SUBJECT) +
+        "&body=" + encodeURIComponent(body);
+    }
+
+    async function copyMail(item, button) {
+      const html = mailHtml(item);
+      const text = mailText(item);
+      try {
+        await navigator.clipboard.write([new ClipboardItem({
+          "text/html": new Blob([html], { type: "text/html" }),
+          "text/plain": new Blob([text], { type: "text/plain" })
+        })]);
+        flash(button);
+      } catch (e) {
+        const box = document.createElement("div");
+        box.contentEditable = "true";
+        box.style.position = "fixed";
+        box.style.left = "-9999px";
+        box.innerHTML = html;
+        document.body.appendChild(box);
+        const range = document.createRange();
+        range.selectNodeContents(box);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        document.execCommand("copy");
+        sel.removeAllRanges();
+        document.body.removeChild(box);
+        flash(button);
+      }
+    }
+
+    function renderList() {
+      const items = FAQS.filter(matches);
+      listEl.innerHTML = "";
+      const noContent = !query && mainEntries().length === 0;
+      placeholderEl.hidden = !noContent;
+      if (noContent) {
+        placeholderEl.innerHTML = "";
+        const strong = document.createElement("strong");
+        strong.textContent = mainById(activeMain).label;
+        placeholderEl.append(strong, document.createTextNode("Inhalte folgen."));
+      }
+      emptyEl.hidden = noContent || items.length > 0;
+      const total = query ? levelEntries().length : mainEntries().length;
+      countEl.textContent = items.length + " von " + total + " Einträgen" + (query ? " (Suche in allen Hauptkategorien)" : "");
+
+      items.forEach(item => {
+        const details = document.createElement("details");
+        details.className = "card";
+        details.dataset.id = item.id;
+
+        const summary = document.createElement("summary");
+        summary.innerHTML = `
+          <div class="q-main">
+            <div class="tags">${query ? '<span class="tag main">' + escHtml(mainById(item.main).label) + '</span>' : ''}<span class="tag">${escHtml(item.category)}</span></div>
+            <p class="question">${escHtml(item.title)}</p>
+          </div>
+          <span class="chev" aria-hidden="true">▸</span>`;
+
+        const body = document.createElement("div");
+        body.className = "body";
+
+        const hint = document.createElement("p");
+        hint.className = "hint";
+        hint.textContent = item.hint;
+
+        const pre = document.createElement("div");
+        pre.className = "answer";
+        pre.innerHTML = mailHtml(item);
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const copyBtn = document.createElement("button");
+        copyBtn.type = "button";
+        copyBtn.className = "btn primary";
+        copyBtn.textContent = "Text in die Zwischenablage kopieren";
+        copyBtn.title = "Kopiert den Mailtext mit Logo, Signatur und Disclaimer – im Mail mit Strg+V einfügen.";
+        copyBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          copyMail(item, copyBtn);
+        });
+
+        const openMail = document.createElement("button");
+        openMail.type = "button";
+        openMail.className = "btn small";
+        openMail.textContent = "Download E-Mail";
+        openMail.title = "Öffnet einen Outlook-Entwurf mit Logo, Signatur und Disclaimer (Betreff «RE: Ihre Anfrage»).";
+        openMail.addEventListener("click", (e) => {
+          e.preventDefault();
+          openInOutlook(item);
+        });
+
+        actions.appendChild(copyBtn);
+        actions.appendChild(openMail);
+        const lblPhone = document.createElement("p");
+        lblPhone.className = "block-label";
+        lblPhone.textContent = "Am Telefon (kurz)";
+        const phone = document.createElement("p");
+        phone.className = "phone";
+        phone.textContent = item.phone;
+        phone.innerHTML = phone.innerHTML.replace(/(^|[\s(])(www\.[a-z0-9.-]+\.[a-z]{2,})/gi, '$1<a href="https://$2" target="_blank" rel="noopener">$2</a>');
+
+        const lblMail = document.createElement("p");
+        lblMail.className = "block-label";
+        lblMail.textContent = "E-Mail-Vorlage";
+
+        const basis = document.createElement("p");
+        basis.className = "basis";
+        basis.innerHTML = "<strong>Rechtsgrundlage:</strong> ";
+        basis.insertAdjacentHTML("beforeend", linkLaws(item.basis));
+
+        body.appendChild(hint);
+        body.appendChild(lblPhone);
+        body.appendChild(phone);
+        if (item.answer && item.answer.trim()) {
+          body.appendChild(lblMail);
+          body.appendChild(pre);
+          body.appendChild(actions);
+        } else {
+          const none = document.createElement("p");
+          none.className = "basis";
+          none.textContent = "Keine schriftliche Rückmeldung – nur telefonisch.";
+          body.appendChild(none);
+        }
+        body.appendChild(basis);
+
+        details.appendChild(summary);
+        details.appendChild(body);
+        listEl.appendChild(details);
+      });
+    }
+
+    searchEl.addEventListener("input", () => {
+      query = searchEl.value.trim().toLowerCase();
+      renderFilters();
+      renderList();
+    });
+
+    function escHtml(s) {
+      return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    /* ───────────── ERFASSUNG NEUER EINTRÄGE → BACKLOG ───────────── */
+    const dlg = document.getElementById("entry-dialog");
+    const form = document.getElementById("entry-form");
+    const msgEl = document.getElementById("entry-msg");
+    const fMain = document.getElementById("f-main");
+    const fLevel = document.getElementById("f-level");
+    const fSubList = document.getElementById("f-sub-list");
+    const mailWrap = document.getElementById("f-mail-wrap");
+    const fMail = document.getElementById("f-mail");
+
+    function showMsg(text, kind) {
+      msgEl.textContent = text;
+      msgEl.className = "entry-msg " + kind;
+      msgEl.hidden = !text;
+    }
+    const formLevels = () => CONFIG.levels.concat([CONFIG.improvement]);
+    const formLevelById = id => formLevels().find(l => l.id === id);
+    const formType = () => (formLevelById(fLevel.value) || {}).type;
+    const isInfoForm = () => formType() !== "faq";
+    function fillMainOptions(preselect) {
+      fMain.innerHTML = "";
+      const level = formLevelById(fLevel.value);
+      const opts = level.type === "faq"
+        ? CONFIG.mainCategories.map(m => ({ id: m.id, label: m.label }))
+        : level.type === "general"
+          ? level.sections.map(s => ({ id: s.id, label: s.label }))
+          : (level.sections || []).map(s => ({ id: s.id, label: s.label })).concat([{ id: "neu", label: "Neuer Bereich (bitte beschreiben)" }]);
+      opts.forEach(o => {
+        const el = document.createElement("option");
+        el.value = o.id;
+        el.textContent = o.label;
+        fMain.appendChild(el);
+      });
+      if (preselect && opts.some(o => o.id === preselect)) fMain.value = preselect;
+    }
+    function updateLevel() {
+      const info = isInfoForm();
+      const general = formType() === "general";
+      document.getElementById("f-main-label").textContent = general ? "Thema" : (info ? "Bereich" : "Hauptkategorie");
+      document.getElementById("f-question-label").textContent = general ? "Kurztitel des Vorschlags" : (info ? "Titel des Inhalts" : "Frage");
+      document.getElementById("f-content-label").textContent = general ? "Beschreibung des Vorschlags" : "Inhalt / Beschreibung";
+      document.getElementById("f-sub-wrap").hidden = general;
+      if (general) document.getElementById("f-request").value = "Generelle Verbesserung";
+      else if (document.getElementById("f-request").value === "Generelle Verbesserung") document.getElementById("f-request").value = "Neuer Eintrag";
+      document.getElementById("f-info-fields").hidden = !info;
+      document.getElementById("f-faq-fields").hidden = info;
+      document.getElementById("f-content").required = info;
+      document.getElementById("f-phone").required = !info;
+      if (info) fMail.required = false; else updateKind();
+      form.querySelectorAll("[aria-invalid]").forEach(el => el.removeAttribute("aria-invalid"));
+    }
+    function updateKind() {
+      const both = form.kind.value === "telefon+mail";
+      mailWrap.hidden = !both;
+      fMail.required = both && !isInfoForm();
+      if (!both) fMail.removeAttribute("aria-invalid");
+    }
+    function fillSubList() {
+      fSubList.innerHTML = "";
+      Array.from(new Set(FAQS.filter(f => f.level === fLevel.value && f.main === fMain.value).map(f => f.category))).forEach(c => {
+        const o = document.createElement("option");
+        o.value = c;
+        fSubList.appendChild(o);
+      });
+    }
+    function openEntryForm(opts = {}) {
+      form.reset();
+      fLevel.innerHTML = "";
+      formLevels().forEach(l => {
+        const o = document.createElement("option");
+        o.value = l.id;
+        o.textContent = l.label;
+        fLevel.appendChild(o);
+      });
+      fLevel.value = opts.improvement ? CONFIG.improvement.id : activeLevel;
+      fillMainOptions(!opts.improvement && levelById(activeLevel).type === "faq" ? activeMain : null);
+      fillSubList();
+      updateKind();
+      updateLevel();
+      form.querySelectorAll("[aria-invalid]").forEach(el => el.removeAttribute("aria-invalid"));
+      showMsg("", "ok");
+      document.getElementById("entry-submit").disabled = false;
+      dlg.showModal();
+      document.getElementById("f-question").focus();
+    }
+    function closeEntryForm() { dlg.close(); }
+
+    function collectEntry() {
+      const v = name => (form.elements[name].value || "").trim();
+      const info = isInfoForm();
+      const level = formLevelById(v("level"));
+      const mainOpt = fMain.options[fMain.selectedIndex];
+      return {
+        question: v("question"),
+        level: level.label,
+        levelId: level.id,
+        levelType: level.type,
+        request: v("request"),
+        main: mainOpt ? mainOpt.textContent : v("main"),
+        mainId: v("main"),
+        sub: v("sub"),
+        kind: info ? "nicht zutreffend" : (form.kind.value === "telefon+mail" ? "Telefon und E-Mail" : "nur Telefon"),
+        phone: info ? "" : v("phone"),
+        mail: !info && form.kind.value === "telefon+mail" ? v("mail") : "",
+        content: info ? v("content") : "",
+        link: info ? v("link") : "",
+        basis: info ? "" : v("basis"),
+        hint: v("hint"),
+        author: v("author"),
+        status: BACKLOG_STATUS,
+        created: new Date().toISOString()
+      };
+    }
+    function validateEntry() {
+      let first = null;
+      form.querySelectorAll("[required]").forEach(el => {
+        if (el.closest("[hidden]")) { el.removeAttribute("aria-invalid"); return; }
+        const bad = !el.value.trim();
+        if (bad) { el.setAttribute("aria-invalid", "true"); first = first || el; }
+        else el.removeAttribute("aria-invalid");
+      });
+      if (first) { first.focus(); return false; }
+      return true;
+    }
+
+    function entryAsText(r) {
+      return [
+        "Antrag (" + r.status + ")",
+        "",
+        "Rubrik: " + r.level,
+        "Art des Antrags: " + r.request,
+        (r.levelType === "faq" ? "Hauptkategorie: " : (r.levelType === "general" ? "Thema: " : "Bereich: ")) + r.main,
+        "Unterkategorie: " + (r.sub || "–"),
+        (r.levelType === "faq" ? "Frage: " : "Titel: ") + r.question,
+        ""
+      ].concat(r.levelType === "faq" ? [
+        "Art der Antwort: " + r.kind,
+        "",
+        "Antwort am Telefon:",
+        r.phone,
+        "",
+        "Antwort per E-Mail:",
+        r.mail || "–",
+        "",
+        "Rechtsgrundlage: " + (r.basis || "–")
+      ] : [
+        "Inhalt / Beschreibung:",
+        r.content,
+        "",
+        "Link / Ablageort: " + (r.link || "–")
+      ]).concat([
+        "Interner Hinweis: " + (r.hint || "–"),
+        "Erfasst von: " + r.author,
+        "Erfasst am: " + new Date(r.created).toLocaleString("de-CH")
+      ]).join("\r\n");
+    }
+
+    async function sendToSharePoint(r) {
+      const sp = CONFIG.backlog.sharepoint;
+      const site = sp.siteUrl.replace(/\/$/, "");
+      const ctx = await fetch(site + "/_api/contextinfo", {
+        method: "POST", credentials: "include",
+        headers: { Accept: "application/json;odata=nometadata" }
+      });
+      if (!ctx.ok) throw new Error("SharePoint nicht erreichbar (" + ctx.status + ")");
+      const digest = (await ctx.json()).FormDigestValue;
+      const body = {};
+      Object.entries(sp.fields).forEach(([key, col]) => { if (col) body[col] = r[key]; });
+      const res = await fetch(site + "/_api/web/lists/getbytitle('" + encodeURIComponent(sp.listTitle) + "')/items", {
+        method: "POST", credentials: "include",
+        headers: {
+          Accept: "application/json;odata=nometadata",
+          "Content-Type": "application/json;odata=nometadata",
+          "X-RequestDigest": digest
+        },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error("Eintrag in die Liste fehlgeschlagen (" + res.status + ")");
+    }
+    async function sendToFlow(r) {
+      const res = await fetch(CONFIG.backlog.flow.url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(r)
+      });
+      if (!res.ok) throw new Error("Flow hat den Antrag abgelehnt (" + res.status + ")");
+    }
+    // Öffnet Links (mailto); als eigene Funktion, damit sie in Tests ersetzt werden kann
+    window.FAQ_APP = window.FAQ_APP || { openUrl: url => { window.location.href = url; } };
+    function sendByMail(r) {
+      window.FAQ_APP.openUrl("mailto:" + encodeURIComponent(CONFIG.backlog.mailTo || "") +
+        "?subject=" + encodeURIComponent("Antrag " + r.level + ": " + r.question) +
+        "&body=" + encodeURIComponent(entryAsText(r)));
+    }
+
+    async function submitEntry(ev) {
+      ev.preventDefault();
+      showMsg("", "ok");
+      if (!validateEntry()) { showMsg("Bitte die markierten Pflichtfelder ausfüllen.", "err"); return; }
+      const r = collectEntry();
+      const b = CONFIG.backlog;
+      const submitBtn = document.getElementById("entry-submit");
+      submitBtn.disabled = true;
+      try {
+        if (b.mode === "sharepoint" && b.sharepoint.siteUrl) {
+          await sendToSharePoint(r);
+          showMsg("Der Antrag wurde an den Backlog (Microsoft Lists) gesendet. Er erscheint nach der Freigabe in der FAQ.", "ok");
+        } else if (b.mode === "flow" && b.flow.url) {
+          await sendToFlow(r);
+          showMsg("Der Antrag wurde an den Backlog gesendet. Er erscheint nach der Freigabe in der FAQ.", "ok");
+        } else {
+          sendByMail(r);
+          showMsg("Ein vorbereitetes E-Mail mit dem Antrag wurde geöffnet. Bitte dort absenden.", "ok");
+        }
+      } catch (err) {
+        submitBtn.disabled = false;
+        showMsg("Der Antrag konnte nicht gesendet werden: " + err.message + ". Bitte später erneut versuchen.", "err");
+      }
+    }
+
+    function startRequest(opts = {}) {
+      const b = CONFIG.backlog;
+      if (b.mode === "form" && b.formUrl) {
+        window.open(b.formUrl, "_blank", "noopener");
+      } else {
+        openEntryForm(opts);
+      }
+    }
+    document.getElementById("btn-new-entry").addEventListener("click", () => startRequest());
+    document.getElementById("btn-new-info").addEventListener("click", () => startRequest());
+    document.getElementById("entry-close").addEventListener("click", closeEntryForm);
+    document.getElementById("entry-cancel").addEventListener("click", closeEntryForm);
+    form.addEventListener("change", e => {
+      if (e.target.name === "kind") updateKind();
+      if (e.target.name === "main") fillSubList();
+      if (e.target.name === "level") { fillMainOptions(); fillSubList(); updateLevel(); }
+    });
+    form.addEventListener("submit", submitEntry);
+
+    renderAll();
+  </script>
+</body>
+</html>
