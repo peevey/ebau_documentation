@@ -23,6 +23,10 @@ Ich möchte hier noch einen **fetten Text** haben und hier etwas *kursives*. [S2
 > [!CAUTION]
 > Advises about risks or negative outcomes of certain actions.
 
+```python
+print("Hallo Welt")
+```
+
 ## Komponenten und Datenfluss
 
 | Komponente | Aufgabe und Verbindung |
