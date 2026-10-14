@@ -138,8 +138,17 @@ Für einen einfachen Hinweis reicht auch:
 **Hinweis:** Änderungen werden erst nach einem erfolgreichen Build veröffentlicht.
 ```
 
-GitHub-spezifische Hinweisblöcke wie `[!NOTE]` werden durch diesen Pandoc-Build
-nicht automatisch als gestaltete Hinweisboxen umgesetzt.
+GitHub-Hinweisblöcke werden in HTML und PDF als farbige Hinweisboxen ausgegeben:
+
+```markdown
+> [!NOTE]
+> Hier steht ein Hinweis mit **wichtigen Details**.
+```
+
+Der Marker steht allein auf der ersten Zeile des Zitats. Unterstützt werden
+`[!NOTE]` (Hinweis), `[!TIP]` (Tipp), `[!IMPORTANT]` (Wichtig),
+`[!WARNING]` (Warnung) und `[!CAUTION]` (Achtung).
+Absätze, Listen und andere Markdown-Inhalte innerhalb der Box bleiben erhalten.
 
 ## Trennlinie und Sonderzeichen
 

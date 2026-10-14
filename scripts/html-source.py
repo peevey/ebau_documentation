@@ -38,6 +38,7 @@ for source, title in chapters:
         subprocess.run([
             'pandoc', '--from=markdown', '--standalone', '--toc', '--toc-depth=3',
             '--resource-path=.:pages', '--to=html5', '--template=scripts/page.html',
+            '--lua-filter=scripts/alerts.lua',
             '--metadata-file=' + str(metadata_path), str(source),
             '--output=_site/' + source.stem + '.html',
         ], check=True)

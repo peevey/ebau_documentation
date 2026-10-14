@@ -20,7 +20,7 @@ for chapter in pages/*.md; do
   [[ "$chapter" == "pages/index.md" ]] || sources+=("$chapter")
 done
 
-common=(--from=markdown --standalone --toc --toc-depth=3 --number-sections --resource-path=.:pages)
+common=(--from=markdown --standalone --toc --toc-depth=3 --number-sections --resource-path=.:pages --lua-filter=scripts/alerts.lua)
 
 # In Template-Kopien setzt GITHUB_REPOSITORY automatisch das Zielrepository.
 repository="${GITHUB_REPOSITORY:-peevey/doc_as_code_template}"
@@ -30,6 +30,7 @@ python3 scripts/html-source.py "$edit_base" "${sources[@]}"
 
 pandoc "${common[@]}" "${sources[@]}" \
   --pdf-engine=xelatex \
+  --include-in-header=scripts/alerts.tex \
   --variable=papersize:a4 \
   --variable=geometry:margin=25mm \
   --output=_site/dokumentation.pdf

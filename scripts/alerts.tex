@@ -1,0 +1,8 @@
+\usepackage[most]{tcolorbox}
+\newenvironment{docAlert}[2]{%
+  \definecolor{docAlertColor}{HTML}{#1}%
+  \begin{tcolorbox}[enhanced,breakable,colback=docAlertColor!5!white,
+    colframe=docAlertColor,boxrule=0pt,leftrule=2pt,arc=0pt,
+    colbacktitle=docAlertColor!5!white,coltitle=docAlertColor,
+    fonttitle=\bfseries,title={#2}]
+}{\end{tcolorbox}}

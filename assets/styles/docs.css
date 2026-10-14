@@ -36,3 +36,18 @@ footer { margin-top: 3rem; padding-block: 1rem; border-top: 1px solid var(--pico
 .contents nav + nav { margin-top: 1.5rem; }
 
 main table { display: block; max-width: 100%; overflow-x: auto; }
+
+.alert { --alert-color: #1769aa; margin-block: 1.5rem; padding: 1rem 1.25rem; border-left: .25rem solid var(--alert-color); background: var(--pico-card-background-color, #f7f8fa); }
+.alert-tip { --alert-color: #287a3d; }
+.alert-important { --alert-color: #7650a6; }
+.alert-warning { --alert-color: #926400; }
+.alert-caution { --alert-color: #b42318; }
+.alert-title p { color: var(--alert-color); font-weight: 700; margin-bottom: .5rem; }
+.alert > :last-child { margin-bottom: 0; }
+@media (prefers-color-scheme: dark) {
+  .alert { --alert-color: #79b8ff; }
+  .alert-tip { --alert-color: #7ad990; }
+  .alert-important { --alert-color: #c4a2ef; }
+  .alert-warning { --alert-color: #efd16a; }
+  .alert-caution { --alert-color: #ff9b91; }
+}
