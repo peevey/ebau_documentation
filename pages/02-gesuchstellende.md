@@ -51,7 +51,7 @@ Vor der Einreichung prüft eBau die technische Vollständigkeit. Fehlende Elemen
 
 Im Projektkontext ist ein einstündiges Zeitfenster für den QES-Einreichungsprozess dokumentiert. Wird dieser nicht abgeschlossen, gilt das Gesuch nicht als erfolgreich eingereicht. Der genaue aktuelle Ablauf ist vor Veröffentlichung zu prüfen. Für Anleitungen ist entscheidend, den Abschluss anhand der Rückkehr ins Portal und des Gesuchstatus zu kontrollieren. [K]
 
-### Baugesuch PDF und Versionen
+### Baugesuch-PDF und Versionen
 
 Das Baugesuch-PDF ist in der Zentrale abrufbar. Es enthält allgemeine Angaben, Lageinformationen, Antworten auf Umfangsfragen und eine Auflistung der zugehörigen Dokumente. Die QES der einreichenden Person wird darin hinterlegt. Fachspezifische Formulare werden separat erzeugt und ebenfalls übermittelt. Das Deckblatt nennt die einreichende Person, den Zeitpunkt und die Version. [S4]
 
